@@ -75,9 +75,9 @@ const handleMulterError = (err) => {
     return new AppError("Too many files. Only one file is allowed.", 400);
   }
   return new AppError(err.message || "File upload error.", 400);
-};
 
-<<<<<<< HEAD
+
+
   if (err.code === 11000) {
     statusCode = 409;
     const field = Object.keys(err.keyValue)[0];
@@ -90,16 +90,7 @@ const handleMulterError = (err) => {
     message,
     ...(errors && { errors }),
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-=======
-// ─── Response Senders ─────────────────────────────────────────────────────────
 
-const sendDevError = (err, res) => {
-  res.status(err.statusCode).json({
-    success: false,
-    message: err.message,
-    error: err,
-    stack: err.stack,
->>>>>>> origin/ahmed
   });
 };
 
