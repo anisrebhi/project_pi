@@ -1,27 +1,20 @@
 {
-  "name": "event-management-api",
-  "version": "1.0.0",
-  "description": "Event Management System - Events Module REST API",
+  "name": "event-management-api-v2",
+  "version": "2.0.0",
+  "description": "Event Management System v2 — Events, Users, Reservations",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "keywords": [
-    "event",
-    "management",
-    "api",
-    "express",
-    "mongodb"
-  ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-validator": "^7.2.0",
-    "mongoose": "^8.4.1"
+    "mongoose": "^8.4.1",
+    "multer": "^1.4.5-lts.1",
+    "path": "^0.12.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.3",
