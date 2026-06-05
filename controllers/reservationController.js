@@ -5,7 +5,7 @@ const User        = require('../models/User');
 const ok = (res, code, message, data = {}) =>
   res.status(code).json({ success: true, statusCode: code, message, ...data });
 
-// ─── POST /api/reservations — Réserver un événement ──────────────────────────
+
 const createReservation = async (req, res, next) => {
   try {
     const { userId, eventId, numberOfTickets } = req.body;
@@ -17,14 +17,14 @@ const createReservation = async (req, res, next) => {
       e.statusCode = 404; return next(e);
     }
 
-    // 2. Vérifier que l'événement existe
+   
     const event = await Event.findById(eventId);
     if (!event) {
       const e = new Error(`Event not found: ${eventId}`);
       e.statusCode = 404; return next(e);
     }
 
-    // 3. Vérifier la capacité restante
+   
     if (event.capacity !== null) {
       const takenTickets = await Reservation.aggregate([
         { $match: { event: event._id, status: { $ne: 'cancelled' } } },
@@ -40,7 +40,6 @@ const createReservation = async (req, res, next) => {
       }
     }
 
-    // 4. Vérifier que l'utilisateur n'a pas déjà une réservation active
     const existing = await Reservation.findOne({
       user: userId, event: eventId, status: { $ne: 'cancelled' },
     });
@@ -49,10 +48,10 @@ const createReservation = async (req, res, next) => {
       e.statusCode = 409; return next(e);
     }
 
-    // 5. Calculer le prix total
+ 
     const totalPrice = event.price * numberOfTickets;
 
-    // 6. Créer la réservation
+
     const reservation = await Reservation.create({
       user: userId,
       event: eventId,
@@ -61,13 +60,11 @@ const createReservation = async (req, res, next) => {
       status: 'confirmed',
     });
 
-    // 7. Many-to-Many sync: ajouter user dans event.participants et event dans user.events
     await Promise.all([
       Event.findByIdAndUpdate(eventId, { $addToSet: { participants: userId } }),
       User.findByIdAndUpdate(userId,   { $addToSet: { events: eventId } }),
     ]);
 
-    // 8. Populate pour la réponse
     await reservation.populate([
       { path: 'user',  select: 'firstName lastName email' },
       { path: 'event', select: 'title startDate endDate type price location category' },
@@ -77,7 +74,6 @@ const createReservation = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// ─── GET /api/reservations — Toutes les réservations ─────────────────────────
 const getAllReservations = async (req, res, next) => {
   try {
     const page  = Math.max(parseInt(req.query.page,  10) || 1, 1);
@@ -107,7 +103,6 @@ const getAllReservations = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// ─── GET /api/reservations/:id ────────────────────────────────────────────────
 const getReservationById = async (req, res, next) => {
   try {
     const reservation = await Reservation.findById(req.params.id)
@@ -122,7 +117,6 @@ const getReservationById = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// ─── GET /api/users/:userId/reservations — Réservations d'un utilisateur ─────
 const getUserReservations = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -158,7 +152,6 @@ const getUserReservations = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// ─── PUT /api/reservations/:id/cancel — Annuler une réservation ───────────────
 const cancelReservation = async (req, res, next) => {
   try {
     const reservation = await Reservation.findById(req.params.id);
@@ -197,8 +190,7 @@ const cancelReservation = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// ─── GET /api/events/:id/participants ─────────────────────────────────────────
-// (défini aussi dans eventController — ici version enrichie depuis Reservation)
+
 const getEventParticipants = async (req, res, next) => {
   try {
     const event = await Event.findById(req.params.id);

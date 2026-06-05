@@ -4,7 +4,7 @@ const path  = require('path');
 const ok = (res, code, message, data = {}) =>
   res.status(code).json({ success: true, statusCode: code, message, ...data });
 
-// ─── POST /api/events ─────────────────────────────────────────────────────────
+
 const createEvent = async (req, res, next) => {
   try {
     const {
@@ -40,7 +40,7 @@ const createEvent = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// ─── GET /api/events ──────────────────────────────────────────────────────────
+
 const getAllEvents = async (req, res, next) => {
   try {
     const page  = Math.max(parseInt(req.query.page,  10) || 1, 1);
@@ -77,7 +77,7 @@ const getAllEvents = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// ─── GET /api/events/:id ──────────────────────────────────────────────────────
+
 const getEventById = async (req, res, next) => {
   try {
     const event = await Event.findById(req.params.id)
@@ -90,7 +90,6 @@ const getEventById = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// ─── PUT /api/events/:id ──────────────────────────────────────────────────────
 const updateEvent = async (req, res, next) => {
   try {
     const allowed = [
@@ -102,7 +101,7 @@ const updateEvent = async (req, res, next) => {
     );
     if (updateData.type === 'free') updateData.price = 0;
 
-    // Append newly uploaded images (without removing existing)
+
     const newImages = (req.files || []).map((f) => ({
       url: `${process.env.BASE_URL}/uploads/${f.filename}`,
       filename: f.filename,
@@ -123,7 +122,7 @@ const updateEvent = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// ─── DELETE /api/events/:id ───────────────────────────────────────────────────
+
 const deleteEvent = async (req, res, next) => {
   try {
     const event = await Event.findByIdAndDelete(req.params.id);
@@ -135,7 +134,6 @@ const deleteEvent = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// ─── GET /api/events/:id/participants ─────────────────────────────────────────
 const getEventParticipants = async (req, res, next) => {
   try {
     const event = await Event.findById(req.params.id)

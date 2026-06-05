@@ -52,12 +52,11 @@ const reservationSchema = new mongoose.Schema(
   }
 );
 
-// ─── Indexes ──────────────────────────────────────────────────────────────────
+
 reservationSchema.index({ status: 1 });
 reservationSchema.index({ event: 1 });
 
-// ─── Prevent duplicate active reservations (user + event) ────────────────────
-// Partial unique index: one active reservation per user per event
+
 reservationSchema.index(
   { user: 1, event: 1 },
   {
