@@ -1,6 +1,10 @@
 node_modules/
 .env
-uploads/*
-!uploads/.gitkeep
+src/uploads/profiles/*.jpg
+src/uploads/profiles/*.jpeg
+src/uploads/profiles/*.png
+src/uploads/profiles/*.webp
 *.log
 .DS_Store
+dist/
+coverage/

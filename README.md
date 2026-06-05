@@ -1,45 +1,85 @@
-# Event Management API — v2
+# 🎫 Event Management API — User Management Module
 
-REST API complète construite avec **Node.js**, **Express.js** et **MongoDB (Mongoose)**.
-
-## Modules
-- **Events** — CRUD complet avec images, géolocalisation, type free/paid
-- **Users** — gestion des utilisateurs et relation Many-to-Many avec les événements
-- **Reservations** — réservation, annulation, participants, calcul automatique du prix
+Backend REST API professionnel pour une plateforme de gestion d'événements.  
+Construit avec **Node.js**, **Express.js**, **MongoDB/Mongoose** et **JWT**.
 
 ---
 
-## Structure du projet
+## 📋 Table des matières
+
+- [Technologies](#-technologies)
+- [Architecture](#-architecture)
+- [Installation](#-installation)
+- [Variables d'environnement](#-variables-denvironnement)
+- [Lancement](#-lancement)
+- [API Reference](#-api-reference)
+- [Rôles & Permissions](#-rôles--permissions)
+- [Relation Many-to-Many](#-relation-many-to-many)
+- [Fonctionnalités bonus](#-fonctionnalités-bonus)
+
+---
+
+## 🛠 Technologies
+
+| Technologie | Usage |
+|---|---|
+| Node.js | Runtime JavaScript |
+| Express.js | Framework HTTP |
+| MongoDB + Mongoose | Base de données NoSQL + ODM |
+| JWT (jsonwebtoken) | Authentification stateless |
+| bcryptjs | Hachage des mots de passe |
+| dotenv | Variables d'environnement |
+| express-validator | Validation des entrées |
+| multer | Upload d'images |
+| swagger-ui-express | Documentation interactive |
+| helmet | Sécurité HTTP headers |
+| morgan | Logs HTTP |
+| express-rate-limit | Protection anti-bruteforce |
+| cors | Cross-Origin Resource Sharing |
+
+---
+
+## 🏗 Architecture
 
 ```
-event-mgmt-v2/
+src/
 ├── config/
-│   └── db.js                          MongoDB connection
+│   ├── db.js               # Connexion MongoDB avec retry & graceful shutdown
+│   └── swagger.js          # Configuration OpenAPI 3.0
+│
 ├── models/
-│   ├── User.js                        Schéma utilisateur
-│   ├── Event.js                       Schéma événement (location, images, type)
-│   └── Reservation.js                 Schéma réservation
+│   ├── User.js             # Schéma User (soft delete, méthodes, indexes)
+│   └── Event.js            # Schéma Event (virtuals, soft delete, Many-to-Many)
+│
 ├── controllers/
-│   ├── eventController.js             CRUD events + participants
-│   ├── userController.js              CRUD users
-│   └── reservationController.js       Réservations + annulation
+│   ├── authController.js   # register, login, getMe
+│   ├── userController.js   # CRUD + upload image + getUserEvents
+│   └── eventController.js  # CRUD + register/unregister + participants
+│
 ├── routes/
-│   ├── eventRoutes.js
-│   ├── userRoutes.js
-│   └── reservationRoutes.js
-├── middleware/
-│   ├── errorMiddleware.js             Gestion erreurs centralisée
-│   ├── uploadMiddleware.js            Multer — upload images
-│   └── validationMiddleware.js        express-validator
-├── uploads/                           Images uploadées
-├── .env
-├── server.js
-└── package.json
+│   ├── authRoutes.js       # POST /api/auth/register|login, GET /api/auth/me
+│   ├── userRoutes.js       # GET|POST|PUT|DELETE /api/users
+│   └── eventRoutes.js      # GET|POST|PUT|DELETE /api/events + relations
+│
+├── middlewares/
+│   ├── authMiddleware.js   # JWT protect + optionalAuth
+│   ├── roleMiddleware.js   # RBAC: authorize(), adminOnly, selfOrAdmin
+│   ├── errorMiddleware.js  # AppError class + global error handler
+│   └── validationMiddleware.js  # express-validator chains
+│
+├── utils/
+│   ├── generateToken.js    # JWT sign/verify/extract
+│   ├── apiResponse.js      # sendSuccess / sendError / buildPagination
+│   └── multerConfig.js     # Multer diskStorage + fileFilter
+│
+├── uploads/profiles/       # Images de profil uploadées
+├── app.js                  # Configuration Express (middlewares, routes)
+└── server.js               # Entrée principale (DB + HTTP server)
 ```
 
 ---
 
-## Installation
+## ⚙️ Installation
 
 ```bash
 cd event-mgmt-v2
@@ -59,9 +99,30 @@ BASE_URL=http://localhost:5000
 
 ---
 
-## Endpoints
+## 🔐 Variables d'environnement
 
-### Events
+```env
+PORT=5000
+NODE_ENV=development
+
+MONGODB_URI=mongodb://localhost:27017/event_management
+
+JWT_SECRET=votre_secret_jwt_minimum_32_caracteres
+JWT_EXPIRES_IN=7d
+
+BCRYPT_SALT_ROUNDS=12
+
+MAX_FILE_SIZE=5242880       # 5 MB en octets
+UPLOAD_PATH=src/uploads/profiles
+```
+
+---
+
+## 🚀 Lancement
+
+```bash
+# Développement (hot reload)
+npm run dev
 
 | Méthode | Route | Description |
 |---------|-------|-------------|

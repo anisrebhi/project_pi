@@ -1,6 +1,20 @@
-const { body, param, query, validationResult } = require('express-validator');
+/**
+ * @file middlewares/validationMiddleware.js
+ * @description Input validation rules using express-validator.
+ *              Each exported function is a validation chain for a specific route.
+ */
 
-const handleValidationErrors = (req, res, next) => {
+const { body, param, query, validationResult } = require("express-validator");
+const { ROLES } = require("../models/User");
+const { sendError } = require("../utils/apiResponse");
+
+// ─── Validation Runner ────────────────────────────────────────────────────────
+
+/**
+ * Run validation chain and return 422 if any errors exist
+ * Include this as the last middleware in a validation chain
+ */
+const runValidation = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).json({
@@ -13,165 +27,180 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-// ─── Event base rules (create vs update) ─────────────────────────────────────
-const eventCreateRules = () => [
-  body('title').trim().notEmpty().withMessage('Title is required')
-    .isLength({ min: 3 }).withMessage('Title must be at least 3 characters'),
+// ─── Auth Validations ─────────────────────────────────────────────────────────
 
-  body('description').optional().trim()
-    .isLength({ max: 2000 }).withMessage('Description max 2000 chars'),
+const validateRegister = [
+  body("fullName")
+    .trim()
+    .notEmpty().withMessage("Full name is required")
+    .isLength({ min: 2, max: 100 }).withMessage("Full name must be 2–100 characters"),
 
-  body('startDate').notEmpty().withMessage('Start date is required')
-    .isISO8601().withMessage('startDate must be a valid ISO 8601 date'),
+  body("email")
+    .trim()
+    .notEmpty().withMessage("Email is required")
+    .isEmail().withMessage("Please provide a valid email address")
+    .normalizeEmail(),
 
-  body('endDate').notEmpty().withMessage('End date is required')
-    .isISO8601().withMessage('endDate must be a valid ISO 8601 date')
-    .custom((val, { req }) => {
-      if (req.body.startDate && new Date(val) <= new Date(req.body.startDate))
-        throw new Error('End date must be after start date');
+  body("password")
+    .notEmpty().withMessage("Password is required")
+    .isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
+    .matches(/\d/).withMessage("Password must contain at least one number"),
+
+  body("role")
+    .optional()
+    .isIn(Object.values(ROLES))
+    .withMessage(`Role must be one of: ${Object.values(ROLES).join(", ")}`),
+
+  body("phone")
+    .optional()
+    .trim()
+    .matches(/^\+?[\d\s\-()]{7,20}$/)
+    .withMessage("Please provide a valid phone number"),
+
+  runValidation,
+];
+
+const validateLogin = [
+  body("email")
+    .trim()
+    .notEmpty().withMessage("Email is required")
+    .isEmail().withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+
+  body("password")
+    .notEmpty().withMessage("Password is required"),
+
+  runValidation,
+];
+
+// ─── User Validations ─────────────────────────────────────────────────────────
+
+const validateUpdateUser = [
+  body("fullName")
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 100 }).withMessage("Full name must be 2–100 characters"),
+
+  body("email")
+    .optional()
+    .trim()
+    .isEmail().withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+
+  body("phone")
+    .optional()
+    .trim()
+    .matches(/^\+?[\d\s\-()]{7,20}$/)
+    .withMessage("Please provide a valid phone number"),
+
+  body("role")
+    .optional()
+    .isIn(Object.values(ROLES))
+    .withMessage(`Role must be one of: ${Object.values(ROLES).join(", ")}`),
+
+  body("password")
+    .optional()
+    .isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
+    .matches(/\d/).withMessage("Password must contain at least one number"),
+
+  runValidation,
+];
+
+// ─── Event Validations ────────────────────────────────────────────────────────
+
+const validateCreateEvent = [
+  body("title")
+    .trim()
+    .notEmpty().withMessage("Title is required")
+    .isLength({ min: 3, max: 150 }).withMessage("Title must be 3–150 characters"),
+
+  body("description")
+    .optional()
+    .trim()
+    .isLength({ max: 2000 }).withMessage("Description must not exceed 2000 characters"),
+
+  body("location")
+    .trim()
+    .notEmpty().withMessage("Location is required")
+    .isLength({ max: 200 }).withMessage("Location must not exceed 200 characters"),
+
+  body("date")
+    .notEmpty().withMessage("Date is required")
+    .isISO8601().withMessage("Date must be a valid ISO 8601 date (e.g. 2024-06-15T09:00:00Z)")
+    .custom((value) => {
+      if (new Date(value) <= new Date()) {
+        throw new Error("Event date must be in the future");
+      }
       return true;
     }),
 
-  body('category').optional()
-    .isIn(['conference', 'workshop', 'meeting', 'sport', 'other'])
-    .withMessage('Category must be: conference, workshop, meeting, sport or other'),
+  body("capacity")
+    .notEmpty().withMessage("Capacity is required")
+    .isInt({ min: 1, max: 100000 })
+    .withMessage("Capacity must be an integer between 1 and 100,000"),
 
-  body('capacity').optional({ nullable: true })
-    .isInt({ min: 1 }).withMessage('Capacity must be a positive integer'),
-
-  body('type').optional()
-    .isIn(['free', 'paid']).withMessage('Type must be "free" or "paid"'),
-
-  body('price').optional({ nullable: true })
-    .isFloat({ min: 0 }).withMessage('Price must be >= 0')
-    .custom((val, { req }) => {
-      if (req.body.type === 'paid' && (!val || val <= 0))
-        throw new Error('Paid events must have a price greater than 0');
-      return true;
-    }),
-
-  body('location.address').optional().trim()
-    .isLength({ max: 300 }).withMessage('Address max 300 chars'),
-  body('location.latitude').optional({ nullable: true })
-    .isFloat({ min: -90, max: 90 }).withMessage('Latitude must be between -90 and 90'),
-  body('location.longitude').optional({ nullable: true })
-    .isFloat({ min: -180, max: 180 }).withMessage('Longitude must be between -180 and 180'),
-
-  body('images').optional().isArray().withMessage('images must be an array'),
-  body('images.*.url').optional().isURL().withMessage('Each image must have a valid URL'),
+  runValidation,
 ];
 
-const eventUpdateRules = () => [
-  body('title').optional().trim()
-    .isLength({ min: 3 }).withMessage('Title must be at least 3 characters'),
+const validateUpdateEvent = [
+  body("title")
+    .optional()
+    .trim()
+    .isLength({ min: 3, max: 150 }).withMessage("Title must be 3–150 characters"),
 
-  body('description').optional().trim()
-    .isLength({ max: 2000 }).withMessage('Description max 2000 chars'),
+  body("description")
+    .optional()
+    .trim()
+    .isLength({ max: 2000 }).withMessage("Description must not exceed 2000 characters"),
 
-  body('startDate').optional()
-    .isISO8601().withMessage('startDate must be a valid ISO 8601 date'),
+  body("location")
+    .optional()
+    .trim()
+    .isLength({ max: 200 }).withMessage("Location must not exceed 200 characters"),
 
-  body('endDate').optional()
-    .isISO8601().withMessage('endDate must be a valid ISO 8601 date')
-    .custom((val, { req }) => {
-      if (req.body.startDate && new Date(val) <= new Date(req.body.startDate))
-        throw new Error('End date must be after start date');
-      return true;
-    }),
+  body("date")
+    .optional()
+    .isISO8601().withMessage("Date must be a valid ISO 8601 date"),
 
-  body('category').optional()
-    .isIn(['conference', 'workshop', 'meeting', 'sport', 'other'])
-    .withMessage('Category must be: conference, workshop, meeting, sport or other'),
+  body("capacity")
+    .optional()
+    .isInt({ min: 1, max: 100000 })
+    .withMessage("Capacity must be an integer between 1 and 100,000"),
 
-  body('capacity').optional({ nullable: true })
-    .isInt({ min: 1 }).withMessage('Capacity must be a positive integer'),
-
-  body('type').optional()
-    .isIn(['free', 'paid']).withMessage('Type must be "free" or "paid"'),
-
-  body('price').optional({ nullable: true })
-    .isFloat({ min: 0 }).withMessage('Price must be >= 0')
-    .custom((val, { req }) => {
-      if (req.body.type === 'paid' && (!val || val <= 0))
-        throw new Error('Paid events must have a price greater than 0');
-      return true;
-    }),
-
-  body('location.address').optional().trim()
-    .isLength({ max: 300 }).withMessage('Address max 300 chars'),
-  body('location.latitude').optional({ nullable: true })
-    .isFloat({ min: -90, max: 90 }).withMessage('Latitude between -90 and 90'),
-  body('location.longitude').optional({ nullable: true })
-    .isFloat({ min: -180, max: 180 }).withMessage('Longitude between -180 and 180'),
-
-  body('images').optional().isArray().withMessage('images must be an array'),
-  body('images.*.url').optional().isURL().withMessage('Each image must have a valid URL'),
+  runValidation,
 ];
 
-// ─── Exported validator chains ────────────────────────────────────────────────
-const validateCreateEvent  = [...eventCreateRules(), handleValidationErrors];
-const validateUpdateEvent  = [
-  param('id').isMongoId().withMessage('Invalid event ID'),
-  ...eventUpdateRules(),
-  handleValidationErrors,
+// ─── Param Validations ────────────────────────────────────────────────────────
+
+const validateMongoId = (paramName) => [
+  param(paramName)
+    .isMongoId()
+    .withMessage(`Invalid ${paramName}: must be a valid MongoDB ObjectId`),
+  runValidation,
 ];
 
-// ─── User ─────────────────────────────────────────────────────────────────────
-const validateCreateUser = [
-  body('firstName').trim().notEmpty().withMessage('First name is required')
-    .isLength({ min: 2 }).withMessage('First name min 2 chars'),
-  body('lastName').trim().notEmpty().withMessage('Last name is required')
-    .isLength({ min: 2 }).withMessage('Last name min 2 chars'),
-  body('email').trim().notEmpty().withMessage('Email is required')
-    .isEmail().withMessage('Invalid email format'),
-  body('phone').optional().trim(),
-  handleValidationErrors,
-];
+// ─── Query Validations ────────────────────────────────────────────────────────
 
-// ─── Reservation ──────────────────────────────────────────────────────────────
-const validateCreateReservation = [
-  body('userId').notEmpty().withMessage('userId is required')
-    .isMongoId().withMessage('Invalid userId'),
-  body('eventId').notEmpty().withMessage('eventId is required')
-    .isMongoId().withMessage('Invalid eventId'),
-  body('numberOfTickets').notEmpty().withMessage('numberOfTickets is required')
-    .isInt({ min: 1, max: 20 }).withMessage('numberOfTickets must be between 1 and 20'),
-  handleValidationErrors,
-];
-
-const validateCancelReservation = [
-  param('id').isMongoId().withMessage('Invalid reservation ID'),
-  body('cancellationReason').optional().trim()
-    .isLength({ max: 500 }).withMessage('Reason max 500 chars'),
-  handleValidationErrors,
-];
-
-// ─── Shared ───────────────────────────────────────────────────────────────────
-const validateMongoId = [
-  param('id').isMongoId().withMessage('Invalid ID format'),
-  handleValidationErrors,
-];
-
-const validateQueryParams = [
-  query('page').optional().isInt({ min: 1 }).withMessage('page must be >= 1'),
-  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('limit between 1 and 100'),
-  query('category').optional()
-    .isIn(['conference', 'workshop', 'meeting', 'sport', 'other'])
-    .withMessage('Invalid category'),
-  query('type').optional().isIn(['free', 'paid']).withMessage('type must be "free" or "paid"'),
-  query('sortBy').optional()
-    .isIn(['startDate', 'endDate', 'createdAt', 'title', 'price'])
-    .withMessage('sortBy: startDate, endDate, createdAt, title or price'),
-  query('order').optional().isIn(['asc', 'desc']).withMessage('order must be asc or desc'),
-  handleValidationErrors,
+const validatePagination = [
+  query("page")
+    .optional()
+    .isInt({ min: 1 }).withMessage("Page must be a positive integer"),
+  query("limit")
+    .optional()
+    .isInt({ min: 1, max: 100 }).withMessage("Limit must be between 1 and 100"),
+  runValidation,
 ];
 
 module.exports = {
+  validateRegister,
+  validateLogin,
+  validateUpdateUser,
   validateCreateEvent,
   validateUpdateEvent,
   validateCreateUser,
   validateCreateReservation,
   validateCancelReservation,
   validateMongoId,
-  validateQueryParams,
+  validatePagination,
+  runValidation,
 };
