@@ -1,240 +1,220 @@
-# Event Management API — Events Module
+# 🎫 Event Management API — User Management Module
 
-A production-ready REST API built with **Node.js**, **Express.js**, and **MongoDB (Mongoose)**.
+Backend REST API professionnel pour une plateforme de gestion d'événements.  
+Construit avec **Node.js**, **Express.js**, **MongoDB/Mongoose** et **JWT**.
 
 ---
 
-## Project Structure
+## 📋 Table des matières
+
+- [Technologies](#-technologies)
+- [Architecture](#-architecture)
+- [Installation](#-installation)
+- [Variables d'environnement](#-variables-denvironnement)
+- [Lancement](#-lancement)
+- [API Reference](#-api-reference)
+- [Rôles & Permissions](#-rôles--permissions)
+- [Relation Many-to-Many](#-relation-many-to-many)
+- [Fonctionnalités bonus](#-fonctionnalités-bonus)
+
+---
+
+## 🛠 Technologies
+
+| Technologie | Usage |
+|---|---|
+| Node.js | Runtime JavaScript |
+| Express.js | Framework HTTP |
+| MongoDB + Mongoose | Base de données NoSQL + ODM |
+| JWT (jsonwebtoken) | Authentification stateless |
+| bcryptjs | Hachage des mots de passe |
+| dotenv | Variables d'environnement |
+| express-validator | Validation des entrées |
+| multer | Upload d'images |
+| swagger-ui-express | Documentation interactive |
+| helmet | Sécurité HTTP headers |
+| morgan | Logs HTTP |
+| express-rate-limit | Protection anti-bruteforce |
+| cors | Cross-Origin Resource Sharing |
+
+---
+
+## 🏗 Architecture
 
 ```
-event-management-api/
+src/
 ├── config/
-│   └── db.js                    # MongoDB connection
-├── controllers/
-│   └── eventController.js       # CRUD business logic
-├── middleware/
-│   ├── errorMiddleware.js       # Global error handler
-│   └── validationMiddleware.js  # express-validator chains
+│   ├── db.js               # Connexion MongoDB avec retry & graceful shutdown
+│   └── swagger.js          # Configuration OpenAPI 3.0
+│
 ├── models/
-│   └── Event.js                 # Mongoose schema & model
+│   ├── User.js             # Schéma User (soft delete, méthodes, indexes)
+│   └── Event.js            # Schéma Event (virtuals, soft delete, Many-to-Many)
+│
+├── controllers/
+│   ├── authController.js   # register, login, getMe
+│   ├── userController.js   # CRUD + upload image + getUserEvents
+│   └── eventController.js  # CRUD + register/unregister + participants
+│
 ├── routes/
-│   └── eventRoutes.js           # Express router
-├── .env                         # Environment variables
-├── .gitignore
-├── package.json
-├── README.md
-└── server.js                    # Entry point
+│   ├── authRoutes.js       # POST /api/auth/register|login, GET /api/auth/me
+│   ├── userRoutes.js       # GET|POST|PUT|DELETE /api/users
+│   └── eventRoutes.js      # GET|POST|PUT|DELETE /api/events + relations
+│
+├── middlewares/
+│   ├── authMiddleware.js   # JWT protect + optionalAuth
+│   ├── roleMiddleware.js   # RBAC: authorize(), adminOnly, selfOrAdmin
+│   ├── errorMiddleware.js  # AppError class + global error handler
+│   └── validationMiddleware.js  # express-validator chains
+│
+├── utils/
+│   ├── generateToken.js    # JWT sign/verify/extract
+│   ├── apiResponse.js      # sendSuccess / sendError / buildPagination
+│   └── multerConfig.js     # Multer diskStorage + fileFilter
+│
+├── uploads/profiles/       # Images de profil uploadées
+├── app.js                  # Configuration Express (middlewares, routes)
+└── server.js               # Entrée principale (DB + HTTP server)
 ```
 
 ---
 
-## Installation
+## ⚙️ Installation
 
 ```bash
-# 1. Clone / enter project directory
-cd event-management-api
-
-# 2. Install dependencies
+cd event-mgmt-v2
 npm install
-
-# 3. Configure environment variables
-cp .env .env.local    # or edit .env directly
+# Configurer .env (voir ci-dessous)
+npm run dev
 ```
 
-### Required environment variables (`.env`)
+### Fichier `.env`
 
 ```env
 NODE_ENV=development
 PORT=5000
-MONGO_URI=mongodb://localhost:27017/event_management
+MONGO_URI=mongodb://localhost:27017/event_management_v2
+BASE_URL=http://localhost:5000
 ```
 
 ---
 
-## Running the Server
+## 🔐 Variables d'environnement
+
+```env
+PORT=5000
+NODE_ENV=development
+
+MONGODB_URI=mongodb://localhost:27017/event_management
+
+JWT_SECRET=votre_secret_jwt_minimum_32_caracteres
+JWT_EXPIRES_IN=7d
+
+BCRYPT_SALT_ROUNDS=12
+
+MAX_FILE_SIZE=5242880       # 5 MB en octets
+UPLOAD_PATH=src/uploads/profiles
+```
+
+---
+
+## 🚀 Lancement
 
 ```bash
-# Development (with auto-reload)
+# Développement (hot reload)
 npm run dev
 
-# Production
-npm start
-```
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| POST | `/api/events` | Créer un événement (+ upload images) |
+| GET | `/api/events` | Lister (pagination, search, filter, sort) |
+| GET | `/api/events/:id` | Détail d'un événement |
+| PUT | `/api/events/:id` | Modifier un événement |
+| DELETE | `/api/events/:id` | Supprimer un événement |
+| GET | `/api/events/:id/participants` | Participants d'un événement |
 
----
+### Users
 
-## API Endpoints
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| POST | `/api/users` | Créer un utilisateur |
+| GET | `/api/users` | Lister les utilisateurs |
+| GET | `/api/users/:id` | Détail utilisateur |
+| PUT | `/api/users/:id` | Modifier un utilisateur |
+| DELETE | `/api/users/:id` | Supprimer un utilisateur |
+| GET | `/api/users/:userId/reservations` | Réservations d'un utilisateur |
 
-| Method | Endpoint          | Description                              |
-|--------|-------------------|------------------------------------------|
-| GET    | `/health`         | Health check                             |
-| POST   | `/api/events`     | Create a new event                       |
-| GET    | `/api/events`     | Get all events (pagination/search/filter)|
-| GET    | `/api/events/:id` | Get a single event                       |
-| PUT    | `/api/events/:id` | Update an event                          |
-| DELETE | `/api/events/:id` | Delete an event                          |
+### Reservations
+
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| POST | `/api/reservations` | Créer une réservation |
+| GET | `/api/reservations` | Lister toutes les réservations |
+| GET | `/api/reservations/:id` | Détail d'une réservation |
+| PUT | `/api/reservations/:id/cancel` | Annuler une réservation |
 
 ---
 
 ## Query Parameters — GET /api/events
 
-| Parameter   | Type   | Default    | Description                                      |
-|-------------|--------|------------|--------------------------------------------------|
-| `page`      | number | 1          | Page number                                      |
-| `limit`     | number | 10         | Results per page (max 100)                       |
-| `search`    | string | —          | Full-text search on title                        |
-| `category`  | string | —          | Filter: conference, workshop, meeting, sport, other |
-| `sortBy`    | string | startDate  | Sort field: startDate, endDate, createdAt, title |
-| `order`     | string | asc        | Sort direction: asc or desc                      |
-| `startFrom` | date   | —          | Filter events starting on or after this date     |
-| `startTo`   | date   | —          | Filter events starting on or before this date    |
+| Paramètre | Type | Description |
+|-----------|------|-------------|
+| `page` | number | Page (défaut: 1) |
+| `limit` | number | Résultats/page max 100 (défaut: 10) |
+| `search` | string | Recherche plein texte titre |
+| `category` | string | conference, workshop, meeting, sport, other |
+| `type` | string | free ou paid |
+| `sortBy` | string | startDate, endDate, createdAt, title, price |
+| `order` | string | asc (défaut) ou desc |
+| `startFrom` | date | Filtre date début (ISO 8601) |
+| `startTo` | date | Filtre date fin (ISO 8601) |
 
 ---
 
-## Event Schema
+## Schémas MongoDB
 
+### Event
 ```json
 {
-  "title":       "string (required, min 3 chars)",
+  "title": "string (required, min 3)",
   "description": "string",
-  "location":    "string",
-  "startDate":   "ISO 8601 date (required)",
-  "endDate":     "ISO 8601 date (required, must be after startDate)",
-  "category":    "conference | workshop | meeting | sport | other",
-  "capacity":    "number (positive integer)"
+  "location": {
+    "address": "string",
+    "latitude": "number [-90, 90]",
+    "longitude": "number [-180, 180]"
+  },
+  "startDate": "Date (required)",
+  "endDate": "Date (required)",
+  "category": "conference|workshop|meeting|sport|other",
+  "capacity": "number",
+  "type": "free|paid",
+  "price": "number (0 si free, >0 si paid)",
+  "images": [{ "url": "string", "filename": "string", "isUploaded": "boolean" }],
+  "participants": ["ObjectId → User"]
 }
 ```
 
----
-
-## Postman Examples
-
-### 1. Create Event — POST /api/events
-
+### User
 ```json
 {
-  "title": "Node.js Advanced Workshop",
-  "description": "Deep dive into async patterns, streams and performance tuning.",
-  "location": "Tunis, Tunisia",
-  "startDate": "2025-09-15T09:00:00.000Z",
-  "endDate":   "2025-09-15T17:00:00.000Z",
-  "category":  "workshop",
-  "capacity":  50
+  "firstName": "string (required, min 2)",
+  "lastName": "string (required, min 2)",
+  "email": "string (required, unique)",
+  "phone": "string",
+  "events": ["ObjectId → Event"]
 }
 ```
 
-**Response 201:**
+### Reservation
 ```json
 {
-  "success": true,
-  "statusCode": 201,
-  "message": "Event created successfully",
-  "data": {
-    "_id": "665f1a2b3c4d5e6f7a8b9c0d",
-    "title": "Node.js Advanced Workshop",
-    ...
-  }
+  "user": "ObjectId → User (required)",
+  "event": "ObjectId → Event (required)",
+  "numberOfTickets": "number [1-20] (required)",
+  "totalPrice": "number (auto-calculé)",
+  "reservationDate": "Date",
+  "status": "pending|confirmed|cancelled",
+  "cancelledAt": "Date",
+  "cancellationReason": "string"
 }
 ```
-
----
-
-### 2. Get All Events — GET /api/events
-
-```
-GET /api/events?page=1&limit=5&category=workshop&sortBy=startDate&order=asc
-```
-
-**Response 200:**
-```json
-{
-  "success": true,
-  "statusCode": 200,
-  "message": "Events fetched successfully",
-  "data": [...],
-  "pagination": {
-    "total": 23,
-    "totalPages": 5,
-    "currentPage": 1,
-    "limit": 5,
-    "hasNextPage": true,
-    "hasPrevPage": false
-  }
-}
-```
-
----
-
-### 3. Get Event by ID — GET /api/events/:id
-
-```
-GET /api/events/665f1a2b3c4d5e6f7a8b9c0d
-```
-
----
-
-### 4. Update Event — PUT /api/events/:id
-
-```json
-{
-  "capacity": 75,
-  "location": "Sfax, Tunisia"
-}
-```
-
----
-
-### 5. Delete Event — DELETE /api/events/:id
-
-```
-DELETE /api/events/665f1a2b3c4d5e6f7a8b9c0d
-```
-
-**Response 200:**
-```json
-{
-  "success": true,
-  "statusCode": 200,
-  "message": "Event deleted successfully",
-  "data": { "id": "665f1a2b3c4d5e6f7a8b9c0d" }
-}
-```
-
----
-
-### 6. Search by Title — GET /api/events?search=
-
-```
-GET /api/events?search=workshop&page=1&limit=10
-```
-
----
-
-## Error Response Format
-
-All errors follow a consistent structure:
-
-```json
-{
-  "success": false,
-  "statusCode": 422,
-  "message": "Validation failed",
-  "errors": [
-    { "field": "title", "message": "Title must be at least 3 characters" },
-    { "field": "endDate", "message": "End date must be after start date" }
-  ]
-}
-```
-
----
-
-## Tech Stack
-
-| Package            | Purpose                  |
-|--------------------|--------------------------|
-| express            | HTTP framework           |
-| mongoose           | MongoDB ODM              |
-| express-validator  | Input validation         |
-| dotenv             | Environment variables    |
-| cors               | Cross-Origin support     |
-| nodemon (dev)      | Auto-reload in dev mode  |
