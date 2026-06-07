@@ -15,7 +15,7 @@ const {
   validateUpdateReclamation,
   validateUpdateStatut,
   validateMongoId,
-  validateQueryParams,
+  validateQueryReclamations,
 } = require('../middleware/validationMiddleware');
 
 // ─── Reclamation Routes ───────────────────────────────────────────────────────
@@ -25,7 +25,7 @@ const {
 router
   .route('/')
   .post(validateCreateReclamation, createReclamation)
-  .get(validateQueryParams, getAllReclamations);
+  .get(validateQueryReclamations, getAllReclamations);
 
 // GET    /api/reclamations/:id    → get reclamation by ID
 // PUT    /api/reclamations/:id    → update reclamation fields

@@ -139,9 +139,136 @@ const validateQueryParams = [
   handleValidationErrors,
 ];
 
+// Used by GET /api/reclamations — correct field names: categorie, priorite, statut
+const validateQueryReclamations = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 }).withMessage('Page must be a positive integer'),
+
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
+
+  query('categorie')
+    .optional()
+    .isIn(['technique', 'administratif', 'pedagogique', 'infrastructure', 'autre'])
+    .withMessage('Invalid categorie filter'),
+
+  query('priorite')
+    .optional()
+    .isIn(['faible', 'moyenne', 'haute', 'urgente'])
+    .withMessage('Invalid priorite filter'),
+
+  query('statut')
+    .optional()
+    .isIn(['en_attente', 'en_cours', 'resolue', 'rejetee'])
+    .withMessage('Invalid statut filter'),
+
+  query('sortBy')
+    .optional()
+    .isIn(['createdAt', 'updatedAt', 'priorite', 'statut', 'sujet'])
+    .withMessage('sortBy must be one of: createdAt, updatedAt, priorite, statut, sujet'),
+
+  query('order')
+    .optional()
+    .isIn(['asc', 'desc'])
+    .withMessage('order must be "asc" or "desc"'),
+
+  handleValidationErrors,
+];
+
+// ─── Reclamation Validators ───────────────────────────────────────────────────
+
+const validateCreateReclamation = [
+  body('sujet')
+    .trim()
+    .notEmpty().withMessage('Subject is required')
+    .isLength({ min: 5 }).withMessage('Subject must be at least 5 characters'),
+
+  body('description')
+    .trim()
+    .notEmpty().withMessage('Description is required')
+    .isLength({ min: 10 }).withMessage('Description must be at least 10 characters'),
+
+  body('categorie')
+    .optional()
+    .isIn(['technique', 'administratif', 'pedagogique', 'infrastructure', 'autre'])
+    .withMessage('Category must be one of: technique, administratif, pedagogique, infrastructure, autre'),
+
+  body('priorite')
+    .optional()
+    .isIn(['faible', 'moyenne', 'haute', 'urgente'])
+    .withMessage('Priority must be one of: faible, moyenne, haute, urgente'),
+
+  body('soumisePar')
+    .trim()
+    .notEmpty().withMessage('Submitter information is required'),
+
+  body('email')
+    .trim()
+    .notEmpty().withMessage('Email is required')
+    .isEmail().withMessage('Please enter a valid email'),
+
+  body('piecesJointes')
+    .optional()
+    .isArray().withMessage('piecesJointes must be an array'),
+
+  handleValidationErrors,
+];
+
+const validateUpdateReclamation = [
+  param('id').isMongoId().withMessage('Invalid reclamation ID'),
+
+  body('sujet')
+    .optional()
+    .trim()
+    .isLength({ min: 5 }).withMessage('Subject must be at least 5 characters'),
+
+  body('description')
+    .optional()
+    .trim()
+    .isLength({ min: 10 }).withMessage('Description must be at least 10 characters'),
+
+  body('categorie')
+    .optional()
+    .isIn(['technique', 'administratif', 'pedagogique', 'infrastructure', 'autre'])
+    .withMessage('Category must be one of: technique, administratif, pedagogique, infrastructure, autre'),
+
+  body('priorite')
+    .optional()
+    .isIn(['faible', 'moyenne', 'haute', 'urgente'])
+    .withMessage('Priority must be one of: faible, moyenne, haute, urgente'),
+
+  body('piecesJointes')
+    .optional()
+    .isArray().withMessage('piecesJointes must be an array'),
+
+  handleValidationErrors,
+];
+
+const validateUpdateStatut = [
+  param('id').isMongoId().withMessage('Invalid reclamation ID'),
+
+  body('statut')
+    .notEmpty().withMessage('Status is required')
+    .isIn(['en_attente', 'en_cours', 'resolue', 'rejetee'])
+    .withMessage('Status must be one of: en_attente, en_cours, resolue, rejetee'),
+
+  body('reponse')
+    .optional()
+    .trim()
+    .isLength({ max: 2000 }).withMessage('Response cannot exceed 2000 characters'),
+
+  handleValidationErrors,
+];
+
 module.exports = {
   validateCreateEvent,
   validateUpdateEvent,
   validateMongoId,
   validateQueryParams,
+  validateQueryReclamations,
+  validateCreateReclamation,
+  validateUpdateReclamation,
+  validateUpdateStatut,
 };

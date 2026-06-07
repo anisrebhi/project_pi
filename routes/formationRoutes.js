@@ -1,49 +1,60 @@
-import express from "express";
+const express = require('express');
+const router  = express.Router();
 
-import {
-  createFormation,
+const {
   getAllFormations,
   getFormationById,
+  createFormation,
   updateFormation,
   deleteFormation,
-} from "../controllers/formationController.js";
+  enrollUser,
+  unenrollUser,
+  getParticipants,
+  addSession,
+  updateSession,
+  deleteSession,
+  getResources,
+  addResource,
+  updateResource,
+  deleteResource,
+} = require('../controllers/formationController');
 
-import { formationValidationRules } from "../middleware/formationValidation.js";
-import { validationResult } from "express-validator";
+const {
+  validateCreateFormation,
+  validateUpdateFormation,
+  validateEnroll,
+  validateUnenroll,
+  validateAddSession,
+  validateUpdateSession,
+  validateSessionId,
+  validateAddResource,
+  validateUpdateResource,
+  validateResourceId,
+  validateListFormations,
+  validateMongoId,
+} = require('../middleware/formationValidation');
 
-const router = express.Router();
+// ── Core CRUD ─────────────────────────────────────────────────────────────────
+router.get('/',     validateListFormations,   getAllFormations);
+router.post('/',    validateCreateFormation,  createFormation);
+router.get('/:id',  validateMongoId,          getFormationById);
+router.put('/:id',  validateUpdateFormation,  updateFormation);
+router.delete('/:id', validateMongoId,        deleteFormation);
 
-const validate = (req, res, next) => {
-  const errors = validationResult(req);
+// ── Participants ──────────────────────────────────────────────────────────────
+router.get('/:id/participants',        validateMongoId,   getParticipants);
+router.post('/:id/enroll',             validateEnroll,    enrollUser);
+router.delete('/:id/enroll/:userId',   validateUnenroll,  unenrollUser);
 
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      success: false,
-      errors: errors.array(),
-    });
-  }
+// ── Sessions ──────────────────────────────────────────────────────────────────
+router.post('/:id/sessions',                      validateAddSession,    addSession);
+router.put('/:id/sessions/:sessionId',            validateUpdateSession, updateSession);
+router.delete('/:id/sessions/:sessionId',         validateSessionId,     deleteSession);
 
-  next();
-};
+// ── Resources ─────────────────────────────────────────────────────────────────
+router.get('/:id/resources',                      validateMongoId,       getResources);
+router.post('/:id/resources',                     validateAddResource,   addResource);
+router.put('/:id/resources/:resourceId',          validateUpdateResource,updateResource);
+router.delete('/:id/resources/:resourceId',       validateResourceId,    deleteResource);
 
-router.post(
-  "/",
-  formationValidationRules,
-  validate,
-  createFormation
-);
-
-router.get("/", getAllFormations);
-
-router.get("/:id", getFormationById);
-
-router.put(
-  "/:id",
-  formationValidationRules,
-  validate,
-  updateFormation
-);
-
-router.delete("/:id", deleteFormation);
-
-export default router;
+module.exports = router;
