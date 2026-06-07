@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * @file models/Event.js
  * @description Mongoose Event model — stores event data, organizer reference,
@@ -52,12 +53,16 @@ const imageSchema = new mongoose.Schema(
   { _id: false }
 );
 
+=======
+const mongoose = require('mongoose');
+>>>>>>> 736ea0a (Travail de Elyes)
 
 const eventSchema = new mongoose.Schema(
   {
     title: {
       type: String,
       required: [true, 'Event title is required'],
+<<<<<<< HEAD
       minlength: [3, 'Title must be at least 3 characters'],
       trim: true,
       minlength: [3, "Title must be at least 3 characters"],
@@ -77,6 +82,18 @@ const eventSchema = new mongoose.Schema(
       default: () => ({}),
     },
 
+=======
+      trim: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
+    location: {
+      type: String,
+      trim: true,
+    },
+>>>>>>> 736ea0a (Travail de Elyes)
     startDate: {
       type: Date,
       required: [true, 'Start date is required'],
@@ -85,6 +102,7 @@ const eventSchema = new mongoose.Schema(
       type: Date,
       required: [true, 'End date is required'],
     },
+<<<<<<< HEAD
 
     category: {
       type: String,
@@ -284,5 +302,53 @@ eventSchema.pre('findOneAndUpdate', function (next) {
   }
   next();
 });
+=======
+    category: {
+      type: String,
+      trim: true,
+    },
+    capacity: {
+      type: Number,
+      min: 1,
+    },
+    project: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Project',
+      default: null,
+    },
+    materials: [
+      {
+        material: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Material',
+        },
+        quantity: {
+          type: Number,
+          default: 1,
+          min: 1,
+        },
+        assignedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    status: {
+      type: String,
+      enum: ['draft', 'confirmed', 'in-progress', 'completed', 'cancelled'],
+      default: 'draft',
+    },
+  },
+  { timestamps: true }
+);
+
+eventSchema.index({ title: 'text', description: 'text' });
+eventSchema.index({ startDate: 1 });
+eventSchema.index({ project: 1 });
+>>>>>>> 736ea0a (Travail de Elyes)
 
 module.exports = mongoose.model('Event', eventSchema);

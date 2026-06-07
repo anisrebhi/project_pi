@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * @file models/User.js
  * @description Mongoose User model — stores credentials, roles, and event references.
@@ -76,10 +77,38 @@ const userSchema = new mongoose.Schema(
     ],
 
     // ─── Soft Delete ──────────────────────────────────────────────
+=======
+const mongoose = require('mongoose');
+
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Name is required'],
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: [true, 'Email is required'],
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    role: {
+      type: String,
+      enum: ['admin', 'manager', 'staff'],
+      default: 'staff',
+    },
+    phone: {
+      type: String,
+      trim: true,
+    },
+>>>>>>> 736ea0a (Travail de Elyes)
     isActive: {
       type: Boolean,
       default: true,
     },
+<<<<<<< HEAD
 
     deletedAt: {
       type: Date,
@@ -189,3 +218,10 @@ userSchema.virtual("eventCount").get(function () {
 const User = mongoose.model("User", userSchema);
 
 module.exports = { User, ROLES };
+=======
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model('User', userSchema);
+>>>>>>> 736ea0a (Travail de Elyes)
