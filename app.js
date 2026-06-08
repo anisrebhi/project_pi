@@ -2,7 +2,6 @@
  * @file app.js
  * @description Express application factory — configures middleware, mounts routes,
  *              serves static files, sets up Swagger docs, and registers error handlers.
- *              Kept separate from server.js for testability.
  */
 
 const express = require("express");
@@ -10,6 +9,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const path = require("path");
+const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 const swaggerUi = require("swagger-ui-express");
 
@@ -17,33 +17,28 @@ const swaggerSpec = require("./config/swagger");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const eventRoutes = require("./routes/eventRoutes");
+const registrationRoutes = require("./routes/registrationRoutes");
 const { notFoundHandler, globalErrorHandler } = require("./middleware/errorMiddleware");
+const { startReminderJob } = require("./jobs/reminderJob");
 
 const app = express();
 
 // ─── Security Middleware ──────────────────────────────────────────────────────
 
-/**
- * Helmet — sets secure HTTP headers (XSS, clickjacking, etc.)
- * Configured to allow Swagger UI's inline scripts
- */
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"], // Required for Swagger UI
+        scriptSrc: ["'self'", "'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", "data:", "https:"],
       },
     },
-    crossOriginEmbedderPolicy: false, // Required for Swagger UI
+    crossOriginEmbedderPolicy: false,
   })
 );
 
-/**
- * CORS — allow all origins in development; restrict in production
- */
 const corsOptions = {
   origin:
     process.env.NODE_ENV === "production"
@@ -57,32 +52,20 @@ app.use(cors(corsOptions));
 
 // ─── Rate Limiting ────────────────────────────────────────────────────────────
 
-/**
- * Global rate limiter — 200 requests per 15 minutes per IP
- */
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 200,
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    success: false,
-    message: "Too many requests from this IP. Please try again in 15 minutes.",
-  },
+  message: { success: false, message: "Too many requests from this IP. Please try again in 15 minutes." },
 });
 
-/**
- * Auth-specific rate limiter — stricter: 20 requests per 15 minutes
- */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    success: false,
-    message: "Too many authentication attempts. Please wait 15 minutes and try again.",
-  },
+  message: { success: false, message: "Too many authentication attempts. Please wait 15 minutes and try again." },
 });
 
 app.use(globalLimiter);
@@ -91,13 +74,10 @@ app.use(globalLimiter);
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(cookieParser()); // Required for refresh token cookie
 
 // ─── Logging ──────────────────────────────────────────────────────────────────
 
-/**
- * Morgan — HTTP request logger
- * 'dev' format in development, 'combined' (Apache-style) in production
- */
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 } else {
@@ -106,24 +86,16 @@ if (process.env.NODE_ENV === "development") {
 
 // ─── Static Files ─────────────────────────────────────────────────────────────
 
-/**
- * Serve uploaded profile images at /uploads/profiles/<filename>
- * e.g. GET http://localhost:5000/uploads/profiles/64f1a2b3-1706000000000.jpg
- */
 app.use(
   "/uploads",
   express.static(path.join(__dirname, "uploads"), {
-    maxAge: "7d", // Cache static assets for 7 days
+    maxAge: "7d",
     etag: true,
   })
 );
 
 // ─── API Documentation ────────────────────────────────────────────────────────
 
-/**
- * Swagger UI — available at /api-docs
- * Interactive API explorer for all routes
- */
 app.use(
   "/api-docs",
   swaggerUi.serve,
@@ -141,16 +113,13 @@ app.use(
       }
     `,
     swaggerOptions: {
-      persistAuthorization: true, // Keep JWT token across page refreshes
+      persistAuthorization: true,
       docExpansion: "list",
       filter: true,
     },
   })
 );
 
-/**
- * Raw Swagger JSON — useful for code generation tools
- */
 app.get("/api-docs.json", (req, res) => {
   res.setHeader("Content-Type", "application/json");
   res.send(swaggerSpec);
@@ -158,17 +127,6 @@ app.get("/api-docs.json", (req, res) => {
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 
-/**
- * @swagger
- * /health:
- *   get:
- *     tags: [Health]
- *     summary: API health check
- *     security: []
- *     responses:
- *       200:
- *         description: API is running
- */
 app.get("/health", (req, res) => {
   res.status(200).json({
     success: true,
@@ -185,6 +143,7 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api", registrationRoutes); // covers /api/events/:id/register-qr + /api/registrations/*
 
 // ─── Root Route ───────────────────────────────────────────────────────────────
 
@@ -198,9 +157,15 @@ app.get("/", (req, res) => {
   });
 });
 
+// ─── Background Jobs ──────────────────────────────────────────────────────────
+
+if (process.env.NODE_ENV !== "test") {
+  startReminderJob();
+}
+
 // ─── Error Handlers (must be LAST) ───────────────────────────────────────────
 
-app.use(notFoundHandler);      // 404 for unknown routes
-app.use(globalErrorHandler);   // Global error formatter
+app.use(notFoundHandler);
+app.use(globalErrorHandler);
 
 module.exports = app;

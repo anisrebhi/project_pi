@@ -2,6 +2,7 @@
  * @file models/User.js
  * @description Mongoose User model — stores credentials, roles, and event references.
  *              Implements soft delete via `isActive` flag.
+ *              Added: email verification, refresh tokens, QR registrations ref.
  */
 
 const mongoose = require("mongoose");
@@ -43,7 +44,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters"],
-      select: false, // Never returned in queries by default
+      select: false,
     },
 
     role: {
@@ -86,14 +87,43 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
-    // ─── Password Reset (optional) ────────────────────────────────
+    // ─── Password Reset ───────────────────────────────────────────
     passwordChangedAt: {
       type: Date,
       select: false,
     },
+
+    // ─── Email Verification ───────────────────────────────────────
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    emailVerifyToken: {
+      type: String,
+      select: false,
+    },
+
+    emailVerifyExpires: {
+      type: Date,
+      select: false,
+    },
+
+    // ─── Refresh Tokens (multi-device) ────────────────────────────
+    refreshTokens: {
+      type: [
+        {
+          token: { type: String, required: true },
+          createdAt: { type: Date, default: Date.now },
+          expiresAt: { type: Date, required: true },
+        },
+      ],
+      default: [],
+      select: false,
+    },
   },
   {
-    timestamps: true, // Adds createdAt and updatedAt automatically
+    timestamps: true,
     versionKey: false,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
@@ -102,21 +132,20 @@ const userSchema = new mongoose.Schema(
 
 // ─── Indexes ──────────────────────────────────────────────────────────────────
 
-// NOTE: email index is already created by `unique: true` in the schema field definition
 userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
-userSchema.index({ fullName: "text", email: "text" }); // Text search index
+userSchema.index({ isEmailVerified: 1 });
+userSchema.index({ emailVerifyToken: 1 });
+userSchema.index({ fullName: "text", email: "text" });
 
 // ─── Pre-Save Middleware: Hash Password ───────────────────────────────────────
 
 userSchema.pre("save", async function (next) {
-  // Only hash if password field is new or modified
   if (!this.isModified("password")) return next();
 
   const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
   this.password = await bcrypt.hash(this.password, saltRounds);
 
-  // Update passwordChangedAt if not a new document
   if (!this.isNew) {
     this.passwordChangedAt = Date.now() - 1000;
   }
@@ -126,9 +155,7 @@ userSchema.pre("save", async function (next) {
 
 // ─── Query Middleware: Filter Soft-Deleted ────────────────────────────────────
 
-// Automatically exclude soft-deleted users from find queries
 userSchema.pre(/^find/, function (next) {
-  // `this` refers to the query object
   if (!this.getOptions().includeSoftDeleted) {
     this.find({ isActive: { $ne: false } });
   }
@@ -137,43 +164,29 @@ userSchema.pre(/^find/, function (next) {
 
 // ─── Instance Methods ─────────────────────────────────────────────────────────
 
-/**
- * Compare a plain-text password with the stored hashed password
- * @param {string} candidatePassword - The password to verify
- * @returns {Promise<boolean>}
- */
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-/**
- * Perform soft delete by setting isActive to false
- * @returns {Promise<User>}
- */
 userSchema.methods.softDelete = async function () {
   this.isActive = false;
   this.deletedAt = new Date();
   return await this.save();
 };
 
-/**
- * Remove password and sensitive fields from JSON output
- */
 userSchema.methods.toSafeObject = function () {
   const obj = this.toObject();
   delete obj.password;
   delete obj.passwordChangedAt;
   delete obj.deletedAt;
+  delete obj.emailVerifyToken;
+  delete obj.emailVerifyExpires;
+  delete obj.refreshTokens;
   return obj;
 };
 
 // ─── Static Methods ───────────────────────────────────────────────────────────
 
-/**
- * Find user by email with password included (for authentication)
- * @param {string} email
- * @returns {Promise<User|null>}
- */
 userSchema.statics.findByEmailWithPassword = function (email) {
   return this.findOne({ email, isActive: true }).select("+password");
 };

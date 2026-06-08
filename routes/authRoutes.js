@@ -1,27 +1,33 @@
 /**
  * @file routes/authRoutes.js
- * @description Authentication routes — register, login, get current user
+ * @description Authentication routes — register, verify email, login,
+ *              token refresh, logout, get current user.
  */
 
 const express = require("express");
 const router = express.Router();
 
-const { register, login, getMe } = require("../controllers/authController");
-const { protect } = require("../middleware/authMiddleware");
 const {
-  validateRegister,
-  validateLogin,
-} = require("../middleware/validationMiddleware");
+  register,
+  verifyEmail,
+  resendVerification,
+  login,
+  refreshAccessToken,
+  logout,
+  getMe,
+} = require("../controllers/authController");
 
-// ─── Routes ───────────────────────────────────────────────────────────────────
+const { protect } = require("../middleware/authMiddleware");
+const { validateRegister, validateLogin } = require("../middleware/validationMiddleware");
+
+// ─── Public Routes ────────────────────────────────────────────────────────────
 
 /**
  * @swagger
  * /api/auth/register:
  *   post:
  *     tags: [Auth]
- *     summary: Register a new user
- *     description: Creates a new user account. Role defaults to PARTICIPANT. ADMIN role cannot be self-assigned.
+ *     summary: Register a new user (sends verification email)
  *     security: []
  *     requestBody:
  *       required: true
@@ -31,28 +37,61 @@ const {
  *             $ref: '#/components/schemas/RegisterInput'
  *     responses:
  *       201:
- *         description: User registered successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/AuthResponse'
+ *         description: Registered. Verification email sent.
  *       409:
  *         description: Email already exists
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       422:
- *         description: Validation error
  */
 router.post("/register", validateRegister, register);
+
+/**
+ * @swagger
+ * /api/auth/verify-email:
+ *   get:
+ *     tags: [Auth]
+ *     summary: Verify email address via token link
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Email verified
+ *       400:
+ *         description: Invalid or expired token
+ */
+router.get("/verify-email", verifyEmail);
+
+/**
+ * @swagger
+ * /api/auth/resend-verification:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Resend email verification link
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Email sent if account exists and is unverified
+ */
+router.post("/resend-verification", resendVerification);
 
 /**
  * @swagger
  * /api/auth/login:
  *   post:
  *     tags: [Auth]
- *     summary: Login and receive JWT token
+ *     summary: Login — returns access token + sets refresh token cookie
  *     security: []
  *     requestBody:
  *       required: true
@@ -63,16 +102,41 @@ router.post("/register", validateRegister, register);
  *     responses:
  *       200:
  *         description: Login successful
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/AuthResponse'
  *       401:
  *         description: Invalid credentials
- *       422:
- *         description: Validation error
+ *       403:
+ *         description: Email not verified
  */
 router.post("/login", validateLogin, login);
+
+/**
+ * @swagger
+ * /api/auth/refresh:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Refresh access token using httpOnly cookie
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: New access token issued
+ *       403:
+ *         description: Invalid or expired refresh token
+ */
+router.post("/refresh", refreshAccessToken);
+
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Logout — revokes refresh token
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logged out
+ */
+router.post("/logout", protect, logout);
 
 /**
  * @swagger
@@ -80,14 +144,13 @@ router.post("/login", validateLogin, login);
  *   get:
  *     tags: [Auth]
  *     summary: Get current authenticated user
- *     description: Returns the authenticated user's profile with their events
  *     security:
  *       - BearerAuth: []
  *     responses:
  *       200:
- *         description: Profile retrieved successfully
+ *         description: Profile retrieved
  *       401:
- *         description: Unauthorized — invalid or missing token
+ *         description: Unauthorized
  */
 router.get("/me", protect, getMe);
 
