@@ -1,0 +1,21 @@
+$kind: http-request
+name: 'POST /api/projects'
+url: '{{baseUrl}}/api/projects'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{token}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Projet Sono 2026",
+      "description": "Gestion du matériel sonore pour les événements 2026",
+      "startDate": "2026-01-01",
+      "endDate": "2026-12-31",
+      "status": "active",
+      "budget": 50000
+    }
+order: 501

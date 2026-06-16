@@ -17,6 +17,9 @@ const swaggerSpec = require("./config/swagger");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const eventRoutes = require("./routes/eventRoutes");
+const materialRoutes = require("./routes/materialRoutes");
+const projectRoutes = require("./routes/projectRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
 const { notFoundHandler, globalErrorHandler } = require("./middleware/errorMiddleware");
 
 const app = express();
@@ -185,6 +188,9 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api/materials", materialRoutes);
+app.use("/api/projects", projectRoutes);
+app.use("/api/categories", categoryRoutes);
 
 // ─── Root Route ───────────────────────────────────────────────────────────────
 

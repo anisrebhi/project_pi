@@ -2,7 +2,7 @@ const Project = require('../models/Project');
 const Event = require('../models/Event');
 const Material = require('../models/Material');
 const { sendSuccess } = require('../utils/responseHelper');
-const { AppError } = require('../middleware/errorHandler');
+const { AppError } = require('../middleware/errorMiddleware');
 const asyncHandler = require('../middleware/asyncHandler');
 const { validationResult } = require('express-validator');
 

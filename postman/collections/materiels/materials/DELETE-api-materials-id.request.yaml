@@ -1,0 +1,8 @@
+$kind: http-request
+name: 'DELETE /api/materials/:id'
+url: '{{baseUrl}}/api/materials/{{materialId}}'
+method: DELETE
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+order: 105

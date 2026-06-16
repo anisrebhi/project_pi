@@ -1,0 +1,20 @@
+$kind: http-request
+name: 'POST /api/users'
+url: '{{baseUrl}}/api/users'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{token}}'
+body:
+  type: json
+  content: |-
+    {
+      "fullName": "Jane Smith",
+      "email": "jane.smith@example.com",
+      "password": "password123",
+      "role": "ORGANIZER",
+      "phone": "+21698765432"
+    }
+order: 301

@@ -1,0 +1,5 @@
+$kind: http-request
+name: 'GET /api/categories/:id'
+url: '{{baseUrl}}/api/categories/{{categoryId}}'
+method: GET
+order: 602

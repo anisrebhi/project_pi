@@ -1,0 +1,19 @@
+$kind: http-request
+name: 'POST /api/categories'
+url: '{{baseUrl}}/api/categories'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{token}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Sonorisation",
+      "description": "Matériel de sonorisation et amplification",
+      "icon": "speaker",
+      "color": "#FF6B35"
+    }
+order: 601

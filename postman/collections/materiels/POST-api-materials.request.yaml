@@ -1,0 +1,24 @@
+$kind: http-request
+name: 'POST /api/materials'
+url: 'http://localhost:5000/api/materials'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Enceinte JBL EON615",
+      "description": "Enceinte active 15 pouces",
+      "serialNumber": "JBL-615-001",
+      "quantity": 4,
+      "status": "disponible",
+      "category": "{{categoryId}}",
+      "project": "{{projectId}}",
+      "purchaseDate": "2026-01-15",
+      "purchasePrice": 1200,
+      "location": "Entrepôt A - Étagère 3",
+      "condition": "Neuf"
+    }
+order: 1781455907284

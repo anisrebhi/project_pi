@@ -1,0 +1,30 @@
+$kind: http-request
+name: 'POST /api/events'
+url: '{{baseUrl}}/api/events'
+method: POST
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{token}}'
+body:
+  type: json
+  content: |-
+    {
+      "title": "Tech Conference 2026",
+      "description": "Annual technology conference",
+      "startDate": "2026-09-01T09:00:00.000Z",
+      "endDate": "2026-09-01T18:00:00.000Z",
+      "category": "conference",
+      "capacity": 200,
+      "organizer": "{{userId}}",
+      "type": "paid",
+      "price": 50,
+      "location": {
+        "address": "Tunis, Tunisia",
+        "latitude": 36.8065,
+        "longitude": 10.1815
+      },
+      "status": "draft"
+    }
+order: 401

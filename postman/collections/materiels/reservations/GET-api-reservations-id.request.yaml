@@ -1,0 +1,8 @@
+$kind: http-request
+name: 'GET /api/reservations/:id'
+url: '{{baseUrl}}/api/reservations/{{reservationId}}'
+method: GET
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+order: 702

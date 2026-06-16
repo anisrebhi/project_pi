@@ -1,0 +1,8 @@
+$kind: http-request
+name: 'PUT /api/users/:id/profile-image'
+url: '{{baseUrl}}/api/users/{{userId}}/profile-image'
+method: PUT
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+order: 306

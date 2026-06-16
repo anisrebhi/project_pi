@@ -1,0 +1,5 @@
+$kind: http-request
+name: 'GET /api/materials'
+url: 'http://localhost:5000/api/materials'
+method: GET
+order: 1781455907283

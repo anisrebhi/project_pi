@@ -1,0 +1,8 @@
+$kind: http-request
+name: 'DELETE /api/events/:id'
+url: '{{baseUrl}}/api/events/{{eventId}}'
+method: DELETE
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+order: 404

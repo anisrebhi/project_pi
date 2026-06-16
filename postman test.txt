@@ -1,0 +1,55 @@
+GET http://localhost:5000/api/categories
+[
+  {
+    "_id": "6843ab1234567890abcd1234",
+    "name": "Sonorisation"
+  }
+]
+
+GET http://localhost:5000/api/projects
+[
+  {
+    "_id": "6843cd1234567890abcd5678",
+    "name": "Festival 2026"
+  }
+]
+Post http://localhost:5000/api/materials
+{
+  "name": "Enceinte JBL EON615",
+  "description": "Enceinte active 15 pouces",
+  "serialNumber": "JBL-615-001",
+  "quantity": 4,
+  "status": "disponible",
+  "category": "6843ab1234567890abcd1234",
+  "project": "6843cd1234567890abcd5678",
+  "purchaseDate": "2026-01-15",
+  "purchasePrice": 1200
+}
+
+GET http://localhost:5000/api/materials 
+
+all filters
+GET http://localhost:5000/api/materials?status=disponible
+GET http://localhost:5000/api/materials?category=ID_CATEGORIE
+GET http://localhost:5000/api/materials?project=ID_PROJET
+GET http://localhost:5000/api/materials?search=enceinte
+GET http://localhost:5000/api/materials?page=1&limit=5
+GET http://localhost:5000/api/materials?minPrice=100&maxPrice=500
+GET http://localhost:5000/api/materials?sortBy=purchasePrice&order=desc
+
+modifier un materials 
+PUT http://localhost:5000/api/materials/ID_MATERIAL
+Content-Type: application/json
+
+{
+  "name": "Enceinte JBL EON615 v2",
+  "location": "Entrepôt A - Étagère 4",
+  "condition": "Excellent"
+}
+Changer le Statut : (Status possibles : disponible, en-utilisation, en-maintenance, hors-service, retire)
+PATCH http://localhost:5000/api/materials/ID_MATERIAL/status
+Content-Type: application/json
+
+{
+  "status": "en-maintenance"
+}

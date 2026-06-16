@@ -1,0 +1,5 @@
+$kind: http-request
+name: 'GET /api/events/:id'
+url: '{{baseUrl}}/api/events/{{eventId}}'
+method: GET
+order: 402

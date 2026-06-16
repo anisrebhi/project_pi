@@ -1,0 +1,8 @@
+$kind: http-request
+name: 'GET /api/materials/:id'
+url: '{{baseUrl}}/api/materials/{{materialId}}'
+method: GET
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+order: 103

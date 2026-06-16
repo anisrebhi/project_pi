@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /**
  * @file config/db.js
  * @description MongoDB connection configuration using Mongoose
@@ -6,11 +5,7 @@
 
 const mongoose = require("mongoose");
 
-/**
- * Connects to MongoDB with retry logic and proper event handling
- */
 const connectDB = async () => {
-  // ─── Guard: ensure MONGODB_URI is defined ────────────────────────────────
   if (!process.env.MONGODB_URI) {
     console.error(
       " MONGODB_URI is not defined.\n" +
@@ -23,8 +18,8 @@ const connectDB = async () => {
 
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 10000, // Wait 10s before giving up
-      socketTimeoutMS: 45000,          // Close sockets after 45s of inactivity
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
     });
 
     console.log(` MongoDB Connected: ${conn.connection.host}`);
@@ -33,12 +28,9 @@ const connectDB = async () => {
     console.error(` MongoDB Connection Error: ${error.message}`);
     console.error(`   → Make sure MongoDB is running: mongod`);
     console.error(`   → Or check your MONGODB_URI in .env`);
-    // Throw instead of process.exit so server.js can handle it cleanly
     throw error;
   }
 };
-
-// ─── Mongoose Connection Events ──────────────────────────────────────────────
 
 mongoose.connection.on("disconnected", () => {
   console.warn("  MongoDB disconnected. Attempting to reconnect...");
@@ -52,26 +44,10 @@ mongoose.connection.on("error", (err) => {
   console.error(` MongoDB error: ${err.message}`);
 });
 
-// ─── Graceful Shutdown ────────────────────────────────────────────────────────
-
 process.on("SIGINT", async () => {
   await mongoose.connection.close();
   console.log(" MongoDB connection closed due to app termination.");
   process.exit(0);
 });
 
-=======
-const mongoose = require('mongoose');
-
-const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
-    console.log(`MongoDB connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error(`MongoDB connection error: ${error.message}`);
-    process.exit(1);
-  }
-};
-
->>>>>>> 736ea0a (Travail de Elyes)
 module.exports = connectDB;

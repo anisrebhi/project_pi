@@ -1,0 +1,8 @@
+$kind: http-request
+name: 'GET /api/users/:userId/events'
+url: '{{baseUrl}}/api/users/{{userId}}/events'
+method: GET
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+order: 305
