@@ -1,6 +1,6 @@
 /**
  * @file routes/userRoutes.js
- * @description User management routes with role-based access control
+ * @description User management routes — CRUD, profile image, change password, user events.
  */
 
 const express = require("express");
@@ -14,6 +14,7 @@ const {
   deleteUser,
   getUserEvents,
   uploadProfileImage,
+  changePassword,
 } = require("../controllers/userController");
 
 const { protect } = require("../middleware/authMiddleware");
@@ -22,13 +23,14 @@ const {
   validateUpdateUser,
   validateMongoId,
   validatePagination,
+  validateChangePassword,
 } = require("../middleware/validationMiddleware");
 const { upload } = require("../utils/multerConfig");
 
-// ─── All user routes require authentication ───────────────────────────────────
+// All user routes require authentication
 router.use(protect);
 
-// ─── Routes ───────────────────────────────────────────────────────────────────
+// ─── Collection ───────────────────────────────────────────────────────────────
 
 /**
  * @swagger
@@ -36,7 +38,6 @@ router.use(protect);
  *   get:
  *     tags: [Users]
  *     summary: Get all users (Admin only)
- *     description: Returns paginated list of users with optional search and role filter
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -49,7 +50,7 @@ router.use(protect);
  *       - in: query
  *         name: search
  *         schema: { type: string }
- *         description: Search by fullName or email
+ *         description: Full-text search on fullName and email
  *       - in: query
  *         name: role
  *         schema: { type: string, enum: [ADMIN, ORGANIZER, PARTICIPANT] }
@@ -62,12 +63,8 @@ router.use(protect);
  *     responses:
  *       200:
  *         description: Users retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/PaginatedResponse'
  *       403:
- *         description: Forbidden — ADMIN role required
+ *         description: ADMIN role required
  */
 router.get("/", adminOnly, validatePagination, getAllUsers);
 
@@ -87,21 +84,20 @@ router.get("/", adminOnly, validatePagination, getAllUsers);
  *             $ref: '#/components/schemas/RegisterInput'
  *     responses:
  *       201:
- *         description: User created successfully
- *       403:
- *         description: Forbidden
+ *         description: User created
  *       409:
  *         description: Email already exists
  */
 router.post("/", adminOnly, validateUpdateUser, createUser);
+
+// ─── Single User ──────────────────────────────────────────────────────────────
 
 /**
  * @swagger
  * /api/users/{id}:
  *   get:
  *     tags: [Users]
- *     summary: Get user by ID
- *     description: ADMIN can get any user; other users can only get their own profile
+ *     summary: Get user by ID (Self or Admin)
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -109,14 +105,13 @@ router.post("/", adminOnly, validateUpdateUser, createUser);
  *         name: id
  *         required: true
  *         schema: { type: string }
- *         description: MongoDB ObjectId of the user
  *     responses:
  *       200:
- *         description: User retrieved successfully
+ *         description: User retrieved
  *       403:
  *         description: Access denied
  *       404:
- *         description: User not found
+ *         description: Not found
  */
 router.get("/:id", selfOrAdmin("id"), validateMongoId("id"), getUserById);
 
@@ -125,8 +120,8 @@ router.get("/:id", selfOrAdmin("id"), validateMongoId("id"), getUserById);
  * /api/users/{id}:
  *   put:
  *     tags: [Users]
- *     summary: Update a user
- *     description: ADMIN can update all fields; users can update their own profile (restricted fields)
+ *     summary: Update a user (Self or Admin)
+ *     description: Updatable fields — fullName, phone, role (ADMIN only).
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -142,18 +137,15 @@ router.get("/:id", selfOrAdmin("id"), validateMongoId("id"), getUserById);
  *             properties:
  *               fullName: { type: string }
  *               phone: { type: string }
- *               password: { type: string }
  *               role:
  *                 type: string
  *                 enum: [ADMIN, ORGANIZER, PARTICIPANT]
  *                 description: ADMIN only
  *     responses:
  *       200:
- *         description: User updated successfully
+ *         description: User updated
  *       403:
  *         description: Access denied
- *       404:
- *         description: User not found
  */
 router.put(
   "/:id",
@@ -178,22 +170,24 @@ router.put(
  *         schema: { type: string }
  *     responses:
  *       200:
- *         description: User deleted (soft)
- *       400:
- *         description: Cannot delete own account
- *       403:
- *         description: Forbidden
+ *         description: User soft-deleted
  *       404:
- *         description: User not found
+ *         description: Not found
  */
 router.delete("/:id", adminOnly, validateMongoId("id"), deleteUser);
+
+// ─── User Events ──────────────────────────────────────────────────────────────
 
 /**
  * @swagger
  * /api/users/{userId}/events:
  *   get:
  *     tags: [Relations]
- *     summary: Get all events a user is registered for
+ *     summary: Get events a user is registered for (paginated)
+ *     description: |
+ *       v2: Pagination is now correctly applied — the events array is sliced
+ *       in the application layer before populate() is called, avoiding the
+ *       Mongoose populate skip/limit bug.
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -209,9 +203,7 @@ router.delete("/:id", adminOnly, validateMongoId("id"), deleteUser);
  *         schema: { type: integer, default: 10 }
  *     responses:
  *       200:
- *         description: User events retrieved
- *       403:
- *         description: Access denied
+ *         description: Events retrieved
  *       404:
  *         description: User not found
  */
@@ -223,12 +215,14 @@ router.get(
   getUserEvents
 );
 
+// ─── Profile Image ────────────────────────────────────────────────────────────
+
 /**
  * @swagger
  * /api/users/{id}/profile-image:
  *   put:
  *     tags: [Users]
- *     summary: Upload or update profile image
+ *     summary: Upload or replace profile image (Self or Admin)
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -250,9 +244,9 @@ router.get(
  *       200:
  *         description: Profile image updated
  *       400:
- *         description: No file provided or invalid format
+ *         description: No file or invalid format
  *       413:
- *         description: File too large (max 5MB)
+ *         description: File too large (max 5 MB)
  */
 router.put(
   "/:id/profile-image",
@@ -260,6 +254,57 @@ router.put(
   validateMongoId("id"),
   upload.single("profileImage"),
   uploadProfileImage
+);
+
+// ─── Change Password ──────────────────────────────────────────────────────────
+
+/**
+ * @swagger
+ * /api/users/{id}/change-password:
+ *   put:
+ *     tags: [Users]
+ *     summary: Change password (Self or Admin)
+ *     description: |
+ *       Requires the user's currentPassword for verification. On success,
+ *       all active refresh tokens are revoked — the user must log in again.
+ *       Admin can change any user's password without providing currentPassword.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [currentPassword, newPassword]
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 6
+ *                 description: Must contain at least one number
+ *     responses:
+ *       200:
+ *         description: Password changed — user must log in again
+ *       400:
+ *         description: Missing fields or new password same as current
+ *       401:
+ *         description: Incorrect current password
+ *       404:
+ *         description: User not found
+ */
+router.put(
+  "/:id/change-password",
+  selfOrAdmin("id"),
+  validateMongoId("id"),
+  validateChangePassword,
+  changePassword
 );
 
 module.exports = router;

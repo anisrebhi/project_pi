@@ -1,56 +1,53 @@
 /**
  * @file utils/generateToken.js
- * @description JWT token generation and verification utilities
+ * @description JWT access token + opaque refresh token utilities.
+ *              v2: added generateRefreshToken for two-token auth flow.
  */
 
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
 /**
- * Generate a signed JWT token for a given user
- *
- * @param {Object} payload - Data to encode in the token
- * @param {string} payload.id - User's MongoDB ObjectId
- * @param {string} payload.role - User's role (ADMIN, ORGANIZER, PARTICIPANT)
- * @param {string} payload.email - User's email
- * @returns {string} Signed JWT token
+ * Generate a short-lived JWT access token
+ * @param {object} payload - { id, email, role }
+ * @returns {string} signed JWT
  */
 const generateToken = (payload) => {
-  if (!process.env.JWT_SECRET) {
-    throw new Error("JWT_SECRET environment variable is not set");
-  }
-
   return jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
-    issuer: "event-management-api",
-    audience: "event-management-client",
+    expiresIn: process.env.JWT_EXPIRES_IN || "15m",
   });
 };
 
 /**
- * Verify and decode a JWT token
- *
- * @param {string} token - JWT token to verify
- * @returns {Object} Decoded token payload
- * @throws {JsonWebTokenError|TokenExpiredError} If token is invalid or expired
+ * Generate a cryptographically random opaque refresh token
+ * @returns {string} 64-char hex string
+ */
+const generateRefreshToken = () => {
+  return crypto.randomBytes(32).toString("hex");
+};
+
+/**
+ * Verify a JWT and return the decoded payload
+ * @param {string} token
+ * @returns {object} decoded payload
  */
 const verifyToken = (token) => {
-  return jwt.verify(token, process.env.JWT_SECRET, {
-    issuer: "event-management-api",
-    audience: "event-management-client",
-  });
+  return jwt.verify(token, process.env.JWT_SECRET);
 };
 
 /**
- * Extract token from Authorization header
- *
- * @param {string} authHeader - The Authorization header value
- * @returns {string|null} Extracted token or null
+ * Extract Bearer token from Authorization header
+ * @param {string} authHeader
+ * @returns {string|null}
  */
 const extractTokenFromHeader = (authHeader) => {
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return null;
-  }
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
   return authHeader.split(" ")[1];
 };
 
-module.exports = { generateToken, verifyToken, extractTokenFromHeader };
+module.exports = {
+  generateToken,
+  generateRefreshToken,
+  verifyToken,
+  extractTokenFromHeader,
+};

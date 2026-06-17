@@ -1,0 +1,609 @@
+{
+  "info": {
+    "name": "Event Management API — Full Test Suite",
+    "_postman_id": "event-mgmt-api-v2",
+    "description": "Complete collection for testing all API endpoints.\n\n## Setup\n1. Run the seed script first: `node seed.js`\n2. Start server: `npm run dev`\n3. Run **[AUTH] Login as ADMIN** first — the token is saved automatically to `{{token}}` via the Tests script.\n4. Use environment variables: `baseUrl = http://localhost:5000`\n\n## Roles\n- ADMIN: full access\n- ORGANIZER: create/manage events\n- PARTICIPANT: register to events",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "adminToken", "value": "", "type": "string" },
+    { "key": "orgToken", "value": "", "type": "string" },
+    { "key": "partToken", "value": "", "type": "string" },
+    { "key": "userId", "value": "", "type": "string" },
+    { "key": "eventId", "value": "", "type": "string" },
+    { "key": "reservationId", "value": "", "type": "string" },
+    { "key": "reclamationId", "value": "", "type": "string" },
+    { "key": "formationId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "🔐 AUTH",
+      "item": [
+        {
+          "name": "[AUTH] Register new user",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Ahmed Test\",\n  \"email\": \"ahmed.test@esprit.tn\",\n  \"password\": \"Test123!\",\n  \"phone\": \"+21612312312\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('token', data.token);",
+                  "  pm.collectionVariables.set('userId', data.user._id);",
+                  "  console.log('Token saved:', data.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[AUTH] Login as ADMIN ⭐",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@esprit.tn\",\n  \"password\": \"Admin123!\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('token', data.token);",
+                  "  pm.collectionVariables.set('adminToken', data.token);",
+                  "  pm.collectionVariables.set('userId', data.user._id);",
+                  "  console.log('✅ Admin token saved');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[AUTH] Login as ORGANIZER",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"organizer@esprit.tn\",\n  \"password\": \"Orga123!\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('orgToken', data.token);",
+                  "  console.log('✅ Organizer token saved');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[AUTH] Login as PARTICIPANT",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"participant@esprit.tn\",\n  \"password\": \"Part123!\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('partToken', data.token);",
+                  "  console.log('✅ Participant token saved');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[AUTH] Get my profile (GET /auth/me)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 USERS (Admin only for list/create/delete)",
+      "item": [
+        {
+          "name": "[USERS] Get all users (ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/users?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[USERS] Create user (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/users", "host": ["{{baseUrl}}"], "path": ["api", "users"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"New Organizer\",\n  \"email\": \"neworg@esprit.tn\",\n  \"password\": \"Neworg123!\",\n  \"role\": \"ORGANIZER\",\n  \"phone\": \"+21699887766\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[USERS] Get user by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "users", "{{userId}}"] }
+          }
+        },
+        {
+          "name": "[USERS] Update user",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "users", "{{userId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Ahmed Updated\",\n  \"phone\": \"+21655443322\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[USERS] Get user's events",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/users/{{userId}}/events", "host": ["{{baseUrl}}"], "path": ["api", "users", "{{userId}}", "events"] }
+          }
+        },
+        {
+          "name": "[USERS] Delete user (ADMIN soft-delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "users", "{{userId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎉 EVENTS",
+      "item": [
+        {
+          "name": "[EVENTS] Get all events",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/events?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[EVENTS] Create event (ORGANIZER/ADMIN) ⭐",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{orgToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/events", "host": ["{{baseUrl}}"], "path": ["api", "events"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tech Conference ESPRIT 2025\",\n  \"description\": \"Annual tech conference at ESPRIT\",\n  \"location\": {\n    \"address\": \"ESPRIT, Ghazala Technopark, Ariana\",\n    \"latitude\": 36.8921,\n    \"longitude\": 10.1969\n  },\n  \"startDate\": \"2025-12-15T09:00:00.000Z\",\n  \"endDate\": \"2025-12-15T18:00:00.000Z\",\n  \"category\": \"conference\",\n  \"capacity\": 200\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('eventId', data.data._id);",
+                  "  console.log('✅ Event ID saved:', data.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[EVENTS] Get event by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["api", "events", "{{eventId}}"] }
+          }
+        },
+        {
+          "name": "[EVENTS] Update event",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{orgToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["api", "events", "{{eventId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tech Conference ESPRIT 2025 — UPDATED\",\n  \"capacity\": 300\n}"
+            }
+          }
+        },
+        {
+          "name": "[EVENTS] Get QR code (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/events/{{eventId}}/qrcode", "host": ["{{baseUrl}}"], "path": ["api", "events", "{{eventId}}", "qrcode"] }
+          }
+        },
+        {
+          "name": "[EVENTS] Get QR code (PNG image)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}/qrcode?format=png",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}", "qrcode"],
+              "query": [{ "key": "format", "value": "png" }]
+            }
+          }
+        },
+        {
+          "name": "[EVENTS] Regenerate QR code",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{orgToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/events/{{eventId}}/qrcode", "host": ["{{baseUrl}}"], "path": ["api", "events", "{{eventId}}", "qrcode"] }
+          }
+        },
+        {
+          "name": "[EVENTS] Register user to event",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}/register/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}", "register", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "[EVENTS] Get event participants",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{orgToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}/participants?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}", "participants"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[EVENTS] Unregister user from event",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}/unregister/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}", "unregister", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "[EVENTS] Delete event",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{orgToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["api", "events", "{{eventId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 RESERVATIONS",
+      "item": [
+        {
+          "name": "[RESERVATIONS] Create reservation",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/reservations", "host": ["{{baseUrl}}"], "path": ["api", "reservations"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"eventId\": \"{{eventId}}\",\n  \"numberOfTickets\": 2\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('reservationId', data.data._id);",
+                  "  console.log('✅ Reservation ID saved:', data.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[RESERVATIONS] Get all reservations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reservations?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reservations"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[RESERVATIONS] Get reservation by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/reservations/{{reservationId}}", "host": ["{{baseUrl}}"], "path": ["api", "reservations", "{{reservationId}}"] }
+          }
+        },
+        {
+          "name": "[RESERVATIONS] Cancel reservation",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/reservations/{{reservationId}}/cancel", "host": ["{{baseUrl}}"], "path": ["api", "reservations", "{{reservationId}}", "cancel"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancellationReason\": \"Schedule conflict\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📣 RECLAMATIONS",
+      "item": [
+        {
+          "name": "[RECLAMATIONS] Create reclamation",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/reclamations", "host": ["{{baseUrl}}"], "path": ["api", "reclamations"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sujet\": \"Problème accès réseau WiFi\",\n  \"description\": \"Le réseau WiFi ne fonctionne pas dans la salle B204 depuis deux jours.\",\n  \"categorie\": \"technique\",\n  \"priorite\": \"haute\",\n  \"soumisePar\": \"Ahmed KHEDHRI\",\n  \"email\": \"ahmed@esprit.tn\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('reclamationId', data.data._id);",
+                  "  console.log('✅ Reclamation ID saved:', data.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[RECLAMATIONS] Get all reclamations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reclamations?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reclamations"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "[RECLAMATIONS] Get reclamation by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/reclamations/{{reclamationId}}", "host": ["{{baseUrl}}"], "path": ["api", "reclamations", "{{reclamationId}}"] }
+          }
+        },
+        {
+          "name": "[RECLAMATIONS] Update reclamation",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/reclamations/{{reclamationId}}", "host": ["{{baseUrl}}"], "path": ["api", "reclamations", "{{reclamationId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sujet\": \"Problème accès réseau WiFi — Mise à jour\",\n  \"priorite\": \"urgente\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[RECLAMATIONS] Update statut",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/reclamations/{{reclamationId}}/statut", "host": ["{{baseUrl}}"], "path": ["api", "reclamations", "{{reclamationId}}", "statut"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statut\": \"en_cours\",\n  \"reponse\": \"Technicien IT dispatché sur place\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[RECLAMATIONS] Delete reclamation",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/reclamations/{{reclamationId}}", "host": ["{{baseUrl}}"], "path": ["api", "reclamations", "{{reclamationId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📚 FORMATIONS",
+      "item": [
+        {
+          "name": "[FORMATIONS] Create formation",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/formations", "host": ["{{baseUrl}}"], "path": ["api", "formations"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Formation Angular 17\",\n  \"description\": \"Formation complète sur Angular 17 avec projets pratiques\",\n  \"level\": \"Intermediate\",\n  \"durationHours\": 24,\n  \"instructor\": \"Ahmed KHEDHRI\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.collectionVariables.set('formationId', data._id || data.data?._id);",
+                  "  console.log('✅ Formation ID saved');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "[FORMATIONS] Get all formations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/formations", "host": ["{{baseUrl}}"], "path": ["api", "formations"] }
+          }
+        },
+        {
+          "name": "[FORMATIONS] Get formation by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/formations/{{formationId}}", "host": ["{{baseUrl}}"], "path": ["api", "formations", "{{formationId}}"] }
+          }
+        },
+        {
+          "name": "[FORMATIONS] Update formation",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/formations/{{formationId}}", "host": ["{{baseUrl}}"], "path": ["api", "formations", "{{formationId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Formation Angular 17 — Avancé\",\n  \"description\": \"Version avancée avec RxJS et NgRx\",\n  \"level\": \"Advanced\",\n  \"durationHours\": 40,\n  \"instructor\": \"Ahmed KHEDHRI\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[FORMATIONS] Delete formation",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/formations/{{formationId}}", "host": ["{{baseUrl}}"], "path": ["api", "formations", "{{formationId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏥 Health Check",
+      "item": [
+        {
+          "name": "[HEALTH] Server health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          }
+        },
+        {
+          "name": "[HEALTH] Root info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/", "host": ["{{baseUrl}}"], "path": [""] }
+          }
+        }
+      ]
+    }
+  ]
+}

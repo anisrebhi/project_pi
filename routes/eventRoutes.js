@@ -15,6 +15,8 @@ const {
   registerUserToEvent,
   unregisterUserFromEvent,
   getEventParticipants,
+  getEventQRCode,
+  regenerateEventQRCode,
 } = require("../controllers/eventController");
 
 const { protect } = require("../middleware/authMiddleware");
@@ -181,6 +183,72 @@ router.put("/:id", validateMongoId("id"), validateUpdateEvent, updateEvent);
  *         description: Event not found
  */
 router.delete("/:id", validateMongoId("id"), deleteEvent);
+
+
+/**
+ * @swagger
+ * /api/events/{id}/qrcode:
+ *   get:
+ *     tags: [Events]
+ *     summary: Get the QR code for an event
+ *     description: |
+ *       Returns the QR code image for the event.
+ *       Add **?format=png** to receive a raw PNG image instead of JSON.
+ *       The QR code is auto-generated on first access if missing.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *       - in: query
+ *         name: format
+ *         schema: { type: string, enum: [png] }
+ *         description: Pass "png" to get a raw PNG image response
+ *     responses:
+ *       200:
+ *         description: QR code retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 eventId: { type: string }
+ *                 title:   { type: string }
+ *                 qrCode:  { type: string, description: "base64 PNG data URL" }
+ *           image/png:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       404:
+ *         description: Event not found
+ */
+router.get("/:id/qrcode", validateMongoId("id"), getEventQRCode);
+
+/**
+ * @swagger
+ * /api/events/{id}/qrcode:
+ *   patch:
+ *     tags: [Events]
+ *     summary: Regenerate the QR code for an event
+ *     description: Forces a new QR code to be generated and saved. Only the organizer or ADMIN.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: QR code regenerated successfully
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Event not found
+ */
+router.patch("/:id/qrcode", validateMongoId("id"), regenerateEventQRCode);
 
 // ─── Many-to-Many Relation Routes ─────────────────────────────────────────────
 

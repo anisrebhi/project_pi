@@ -208,7 +208,7 @@ const options = {
       },
     ],
   },
-  apis: ["./src/routes/*.js"], // Path to route files with JSDoc annotations
+  apis: ["./routes/*.js"], // Path to route files with JSDoc annotations
 };
 
 module.exports = swaggerJsdoc(options);

@@ -1,6 +1,6 @@
 const Reservation = require('../models/Reservation');
 const Event       = require('../models/Event');
-const User        = require('../models/User');
+const { User }    = require('../models/User');
 
 const ok = (res, code, message, data = {}) =>
   res.status(code).json({ success: true, statusCode: code, message, ...data });

@@ -32,13 +32,13 @@ router
 // DELETE /api/reclamations/:id   → delete reclamation
 router
   .route('/:id')
-  .get(validateMongoId, getReclamationById)
-  .put(validateUpdateReclamation, updateReclamation)
-  .delete(validateMongoId, deleteReclamation);
+  .get(validateMongoId(), getReclamationById)
+  .put(validateMongoId(), validateUpdateReclamation, updateReclamation)
+  .delete(validateMongoId(), deleteReclamation);
 
 // PATCH  /api/reclamations/:id/statut  → update status + optional response
 router
   .route('/:id/statut')
-  .patch(validateUpdateStatut, updateStatut);
+  .patch(validateMongoId(), validateUpdateStatut, updateStatut);
 
 module.exports = router;

@@ -2,10 +2,12 @@
  * @file models/User.js
  * @description Mongoose User model — stores credentials, roles, and event references.
  *              Implements soft delete via `isActive` flag.
+ *              v2: added refreshToken, emailVerification fields.
  */
 
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 
 // ─── Enum Constants ───────────────────────────────────────────────────────────
 
@@ -43,7 +45,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters"],
-      select: false, // Never returned in queries by default
+      select: false,
     },
 
     role: {
@@ -86,14 +88,58 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
-    // ─── Password Reset (optional) ────────────────────────────────
+    // ─── Password Management ──────────────────────────────────────
     passwordChangedAt: {
       type: Date,
       select: false,
     },
+
+    // ─── Refresh Token ────────────────────────────────────────────
+    refreshToken: {
+      type: String,
+      default: null,
+      select: false,
+    },
+
+    refreshTokenExpiresAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
+    // ─── Email Verification ───────────────────────────────────────
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    emailVerificationToken: {
+      type: String,
+      default: null,
+      select: false,
+    },
+
+    emailVerificationExpiresAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
+    // ─── Password Reset ───────────────────────────────────────────
+    passwordResetToken: {
+      type: String,
+      default: null,
+      select: false,
+    },
+
+    passwordResetExpiresAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
   },
   {
-    timestamps: true, // Adds createdAt and updatedAt automatically
+    timestamps: true,
     versionKey: false,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
@@ -102,23 +148,25 @@ const userSchema = new mongoose.Schema(
 
 // ─── Indexes ──────────────────────────────────────────────────────────────────
 
-// NOTE: email index is already created by `unique: true` in the schema field definition
 userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
-userSchema.index({ fullName: "text", email: "text" }); // Text search index
+userSchema.index({ fullName: "text", email: "text" });
+userSchema.index({ emailVerificationToken: 1 }, { sparse: true });
+userSchema.index({ passwordResetToken: 1 }, { sparse: true });
 
 // ─── Pre-Save Middleware: Hash Password ───────────────────────────────────────
 
 userSchema.pre("save", async function (next) {
-  // Only hash if password field is new or modified
   if (!this.isModified("password")) return next();
 
   const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
   this.password = await bcrypt.hash(this.password, saltRounds);
 
-  // Update passwordChangedAt if not a new document
   if (!this.isNew) {
     this.passwordChangedAt = Date.now() - 1000;
+    // Invalidate all refresh tokens on password change
+    this.refreshToken = null;
+    this.refreshTokenExpiresAt = null;
   }
 
   next();
@@ -126,9 +174,7 @@ userSchema.pre("save", async function (next) {
 
 // ─── Query Middleware: Filter Soft-Deleted ────────────────────────────────────
 
-// Automatically exclude soft-deleted users from find queries
 userSchema.pre(/^find/, function (next) {
-  // `this` refers to the query object
   if (!this.getOptions().includeSoftDeleted) {
     this.find({ isActive: { $ne: false } });
   }
@@ -137,45 +183,111 @@ userSchema.pre(/^find/, function (next) {
 
 // ─── Instance Methods ─────────────────────────────────────────────────────────
 
-/**
- * Compare a plain-text password with the stored hashed password
- * @param {string} candidatePassword - The password to verify
- * @returns {Promise<boolean>}
- */
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-/**
- * Perform soft delete by setting isActive to false
- * @returns {Promise<User>}
- */
 userSchema.methods.softDelete = async function () {
   this.isActive = false;
   this.deletedAt = new Date();
+  this.refreshToken = null;
+  this.refreshTokenExpiresAt = null;
   return await this.save();
 };
 
-/**
- * Remove password and sensitive fields from JSON output
- */
 userSchema.methods.toSafeObject = function () {
   const obj = this.toObject();
   delete obj.password;
   delete obj.passwordChangedAt;
   delete obj.deletedAt;
+  delete obj.refreshToken;
+  delete obj.refreshTokenExpiresAt;
+  delete obj.emailVerificationToken;
+  delete obj.emailVerificationExpiresAt;
+  delete obj.passwordResetToken;
+  delete obj.passwordResetExpiresAt;
   return obj;
+};
+
+/**
+ * Generate and store a hashed email verification token
+ * @returns {string} raw token to send via email
+ */
+userSchema.methods.generateEmailVerificationToken = function () {
+  const rawToken = crypto.randomBytes(32).toString("hex");
+  this.emailVerificationToken = crypto
+    .createHash("sha256")
+    .update(rawToken)
+    .digest("hex");
+  this.emailVerificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+  return rawToken;
+};
+
+/**
+ * Generate and store a hashed password reset token
+ * @returns {string} raw token to send via email
+ */
+userSchema.methods.generatePasswordResetToken = function () {
+  const rawToken = crypto.randomBytes(32).toString("hex");
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(rawToken)
+    .digest("hex");
+  this.passwordResetExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1h
+  return rawToken;
+};
+
+/**
+ * Store a hashed refresh token
+ * @param {string} rawToken
+ */
+userSchema.methods.setRefreshToken = function (rawToken) {
+  this.refreshToken = crypto
+    .createHash("sha256")
+    .update(rawToken)
+    .digest("hex");
+  const days = parseInt(process.env.REFRESH_TOKEN_DAYS) || 30;
+  this.refreshTokenExpiresAt = new Date(
+    Date.now() + days * 24 * 60 * 60 * 1000
+  );
+};
+
+/**
+ * Verify a raw refresh token against the stored hash
+ * @param {string} rawToken
+ * @returns {boolean}
+ */
+userSchema.methods.verifyRefreshToken = function (rawToken) {
+  if (!this.refreshToken || !this.refreshTokenExpiresAt) return false;
+  if (new Date() > this.refreshTokenExpiresAt) return false;
+  const hashed = crypto.createHash("sha256").update(rawToken).digest("hex");
+  return hashed === this.refreshToken;
 };
 
 // ─── Static Methods ───────────────────────────────────────────────────────────
 
-/**
- * Find user by email with password included (for authentication)
- * @param {string} email
- * @returns {Promise<User|null>}
- */
 userSchema.statics.findByEmailWithPassword = function (email) {
-  return this.findOne({ email, isActive: true }).select("+password");
+  return this.findOne({ email, isActive: true }).select(
+    "+password +refreshToken +refreshTokenExpiresAt"
+  );
+};
+
+userSchema.statics.findByVerificationToken = function (rawToken) {
+  const hashed = crypto.createHash("sha256").update(rawToken).digest("hex");
+  return this.findOne({
+    emailVerificationToken: hashed,
+    emailVerificationExpiresAt: { $gt: new Date() },
+    isActive: true,
+  }).select("+emailVerificationToken +emailVerificationExpiresAt");
+};
+
+userSchema.statics.findByPasswordResetToken = function (rawToken) {
+  const hashed = crypto.createHash("sha256").update(rawToken).digest("hex");
+  return this.findOne({
+    passwordResetToken: hashed,
+    passwordResetExpiresAt: { $gt: new Date() },
+    isActive: true,
+  }).select("+passwordResetToken +passwordResetExpiresAt +password");
 };
 
 // ─── Virtual Fields ───────────────────────────────────────────────────────────

@@ -21,9 +21,9 @@ router.route('/')
   .get(validateQueryParams, getAllReservations);
 
 
-router.get('/:id', validateMongoId, getReservationById);
+router.get('/:id', validateMongoId(), getReservationById);
 
 
-router.put('/:id/cancel', validateCancelReservation, cancelReservation);
+router.put('/:id/cancel', validateMongoId(), validateCancelReservation, cancelReservation);
 
 module.exports = router;

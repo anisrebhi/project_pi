@@ -1,19 +1,10 @@
 /**
  * @file middlewares/validationMiddleware.js
- * @description Input validation rules using express-validator.
- *              Each exported function is a validation chain for a specific route.
  */
-
 const { body, param, query, validationResult } = require("express-validator");
 const { ROLES } = require("../models/User");
-const { sendError } = require("../utils/apiResponse");
 
 // ─── Validation Runner ────────────────────────────────────────────────────────
-
-/**
- * Run validation chain and return 422 if any errors exist
- * Include this as the last middleware in a validation chain
- */
 const runValidation = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -27,167 +18,135 @@ const runValidation = (req, res, next) => {
   next();
 };
 
-// ─── Auth Validations ─────────────────────────────────────────────────────────
-
+// ─── Auth ─────────────────────────────────────────────────────────────────────
 const validateRegister = [
-  body("fullName")
-    .trim()
-    .notEmpty().withMessage("Full name is required")
+  body("fullName").trim().notEmpty().withMessage("Full name is required")
     .isLength({ min: 2, max: 100 }).withMessage("Full name must be 2–100 characters"),
-
-  body("email")
-    .trim()
-    .notEmpty().withMessage("Email is required")
-    .isEmail().withMessage("Please provide a valid email address")
-    .normalizeEmail(),
-
-  body("password")
-    .notEmpty().withMessage("Password is required")
+  body("email").trim().notEmpty().withMessage("Email is required")
+    .isEmail().withMessage("Please provide a valid email address").normalizeEmail(),
+  body("password").notEmpty().withMessage("Password is required")
     .isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
     .matches(/\d/).withMessage("Password must contain at least one number"),
-
-  body("role")
-    .optional()
-    .isIn(Object.values(ROLES))
+  body("role").optional().isIn(Object.values(ROLES))
     .withMessage(`Role must be one of: ${Object.values(ROLES).join(", ")}`),
-
-  body("phone")
-    .optional()
-    .trim()
-    .matches(/^\+?[\d\s\-()]{7,20}$/)
-    .withMessage("Please provide a valid phone number"),
-
+  body("phone").optional().trim()
+    .matches(/^\+?[\d\s\-()]{7,20}$/).withMessage("Please provide a valid phone number"),
   runValidation,
 ];
 
 const validateLogin = [
-  body("email")
-    .trim()
-    .notEmpty().withMessage("Email is required")
-    .isEmail().withMessage("Please provide a valid email address")
-    .normalizeEmail(),
-
-  body("password")
-    .notEmpty().withMessage("Password is required"),
-
+  body("email").trim().notEmpty().withMessage("Email is required")
+    .isEmail().withMessage("Please provide a valid email address").normalizeEmail(),
+  body("password").notEmpty().withMessage("Password is required"),
   runValidation,
 ];
 
-// ─── User Validations ─────────────────────────────────────────────────────────
-
+// ─── User ─────────────────────────────────────────────────────────────────────
 const validateUpdateUser = [
-  body("fullName")
-    .optional()
-    .trim()
-    .isLength({ min: 2, max: 100 }).withMessage("Full name must be 2–100 characters"),
-
-  body("email")
-    .optional()
-    .trim()
-    .isEmail().withMessage("Please provide a valid email address")
-    .normalizeEmail(),
-
-  body("phone")
-    .optional()
-    .trim()
-    .matches(/^\+?[\d\s\-()]{7,20}$/)
-    .withMessage("Please provide a valid phone number"),
-
-  body("role")
-    .optional()
-    .isIn(Object.values(ROLES))
-    .withMessage(`Role must be one of: ${Object.values(ROLES).join(", ")}`),
-
-  body("password")
-    .optional()
-    .isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
+  body("fullName").optional().trim().isLength({ min: 2, max: 100 }).withMessage("Full name must be 2–100 characters"),
+  body("email").optional().trim().isEmail().withMessage("Please provide a valid email address").normalizeEmail(),
+  body("phone").optional().trim().matches(/^\+?[\d\s\-()]{7,20}$/).withMessage("Please provide a valid phone number"),
+  body("role").optional().isIn(Object.values(ROLES)).withMessage(`Role must be one of: ${Object.values(ROLES).join(", ")}`),
+  body("password").optional().isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
     .matches(/\d/).withMessage("Password must contain at least one number"),
-
   runValidation,
 ];
 
-// ─── Event Validations ────────────────────────────────────────────────────────
+const validateCreateUser = [
+  body("fullName").trim().notEmpty().withMessage("Full name is required")
+    .isLength({ min: 2, max: 100 }).withMessage("Full name must be 2–100 characters"),
+  body("email").trim().notEmpty().withMessage("Email is required")
+    .isEmail().withMessage("Please provide a valid email address").normalizeEmail(),
+  body("password").notEmpty().withMessage("Password is required")
+    .isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+  runValidation,
+];
 
+// ─── Event ────────────────────────────────────────────────────────────────────
 const validateCreateEvent = [
-  body("title")
-    .trim()
-    .notEmpty().withMessage("Title is required")
+  body("title").trim().notEmpty().withMessage("Title is required")
     .isLength({ min: 3, max: 150 }).withMessage("Title must be 3–150 characters"),
-
-  body("description")
-    .optional()
-    .trim()
-    .isLength({ max: 2000 }).withMessage("Description must not exceed 2000 characters"),
-
-  body("location")
-    .trim()
-    .notEmpty().withMessage("Location is required")
-    .isLength({ max: 200 }).withMessage("Location must not exceed 200 characters"),
-
-  body("date")
-    .notEmpty().withMessage("Date is required")
-    .isISO8601().withMessage("Date must be a valid ISO 8601 date (e.g. 2024-06-15T09:00:00Z)")
-    .custom((value) => {
-      if (new Date(value) <= new Date()) {
-        throw new Error("Event date must be in the future");
-      }
-      return true;
-    }),
-
-  body("capacity")
-    .notEmpty().withMessage("Capacity is required")
-    .isInt({ min: 1, max: 100000 })
-    .withMessage("Capacity must be an integer between 1 and 100,000"),
-
+  body("description").optional().trim().isLength({ max: 2000 }).withMessage("Description must not exceed 2000 characters"),
+  body("startDate").notEmpty().withMessage("Start date is required")
+    .isISO8601().withMessage("startDate must be a valid ISO 8601 date"),
+  body("endDate").notEmpty().withMessage("End date is required")
+    .isISO8601().withMessage("endDate must be a valid ISO 8601 date"),
+  body("capacity").notEmpty().withMessage("Capacity is required")
+    .isInt({ min: 1, max: 100000 }).withMessage("Capacity must be an integer between 1 and 100,000"),
+  body("type").optional().isIn(["free", "paid"]).withMessage('Type must be "free" or "paid"'),
+  body("price").optional().isFloat({ min: 0 }).withMessage("Price cannot be negative"),
   runValidation,
 ];
 
 const validateUpdateEvent = [
-  body("title")
-    .optional()
-    .trim()
-    .isLength({ min: 3, max: 150 }).withMessage("Title must be 3–150 characters"),
-
-  body("description")
-    .optional()
-    .trim()
-    .isLength({ max: 2000 }).withMessage("Description must not exceed 2000 characters"),
-
-  body("location")
-    .optional()
-    .trim()
-    .isLength({ max: 200 }).withMessage("Location must not exceed 200 characters"),
-
-  body("date")
-    .optional()
-    .isISO8601().withMessage("Date must be a valid ISO 8601 date"),
-
-  body("capacity")
-    .optional()
-    .isInt({ min: 1, max: 100000 })
-    .withMessage("Capacity must be an integer between 1 and 100,000"),
-
+  body("title").optional().trim().isLength({ min: 3, max: 150 }).withMessage("Title must be 3–150 characters"),
+  body("description").optional().trim().isLength({ max: 2000 }).withMessage("Description must not exceed 2000 characters"),
+  body("startDate").optional().isISO8601().withMessage("startDate must be a valid ISO 8601 date"),
+  body("endDate").optional().isISO8601().withMessage("endDate must be a valid ISO 8601 date"),
+  body("capacity").optional().isInt({ min: 1, max: 100000 }).withMessage("Capacity must be an integer between 1 and 100,000"),
+  body("type").optional().isIn(["free", "paid"]).withMessage('Type must be "free" or "paid"'),
+  body("price").optional().isFloat({ min: 0 }).withMessage("Price cannot be negative"),
   runValidation,
 ];
 
-// ─── Param Validations ────────────────────────────────────────────────────────
-
-const validateMongoId = (paramName) => [
-  param(paramName)
-    .isMongoId()
-    .withMessage(`Invalid ${paramName}: must be a valid MongoDB ObjectId`),
+// ─── Reclamation ──────────────────────────────────────────────────────────────
+const validateCreateReclamation = [
+  body("sujet").trim().notEmpty().withMessage("Subject is required").isLength({ min: 5 }).withMessage("Subject must be at least 5 characters"),
+  body("description").trim().notEmpty().withMessage("Description is required").isLength({ min: 10 }).withMessage("Description must be at least 10 characters"),
+  body("categorie").optional().isIn(['technique','administratif','pedagogique','infrastructure','autre']).withMessage("Invalid category"),
+  body("priorite").optional().isIn(['faible','moyenne','haute','urgente']).withMessage("Invalid priority"),
+  body("soumisePar").trim().notEmpty().withMessage("Submitter name is required"),
+  body("email").trim().notEmpty().withMessage("Email is required").isEmail().withMessage("Please provide a valid email"),
   runValidation,
 ];
 
-// ─── Query Validations ────────────────────────────────────────────────────────
+const validateUpdateReclamation = [
+  body("sujet").optional().trim().isLength({ min: 5 }).withMessage("Subject must be at least 5 characters"),
+  body("description").optional().trim().isLength({ min: 10 }).withMessage("Description must be at least 10 characters"),
+  body("categorie").optional().isIn(['technique','administratif','pedagogique','infrastructure','autre']).withMessage("Invalid category"),
+  body("priorite").optional().isIn(['faible','moyenne','haute','urgente']).withMessage("Invalid priority"),
+  runValidation,
+];
 
+const validateUpdateStatut = [
+  body("statut").notEmpty().withMessage("Status is required")
+    .isIn(['en_attente','en_cours','resolue','rejetee']).withMessage("Invalid status"),
+  body("reponse").optional().trim(),
+  runValidation,
+];
+
+// ─── Reservation ─────────────────────────────────────────────────────────────
+const validateCreateReservation = [
+  body("userId").notEmpty().withMessage("userId is required").isMongoId().withMessage("userId must be a valid MongoDB ObjectId"),
+  body("eventId").notEmpty().withMessage("eventId is required").isMongoId().withMessage("eventId must be a valid MongoDB ObjectId"),
+  body("numberOfTickets").notEmpty().withMessage("numberOfTickets is required")
+    .isInt({ min: 1, max: 20 }).withMessage("numberOfTickets must be between 1 and 20"),
+  runValidation,
+];
+
+const validateCancelReservation = [
+  body("cancellationReason").optional().trim(),
+  runValidation,
+];
+
+// ─── Params ───────────────────────────────────────────────────────────────────
+const validateMongoId = (paramName = "id") => [
+  param(paramName).isMongoId().withMessage(`Invalid ${paramName}: must be a valid MongoDB ObjectId`),
+  runValidation,
+];
+
+// ─── Query ────────────────────────────────────────────────────────────────────
 const validatePagination = [
-  query("page")
-    .optional()
-    .isInt({ min: 1 }).withMessage("Page must be a positive integer"),
-  query("limit")
-    .optional()
-    .isInt({ min: 1, max: 100 }).withMessage("Limit must be between 1 and 100"),
+  query("page").optional().isInt({ min: 1 }).withMessage("Page must be a positive integer"),
+  query("limit").optional().isInt({ min: 1, max: 100 }).withMessage("Limit must be between 1 and 100"),
+  runValidation,
+];
+
+const validateQueryParams = [
+  query("page").optional().isInt({ min: 1 }).withMessage("Page must be a positive integer"),
+  query("limit").optional().isInt({ min: 1, max: 100 }).withMessage("Limit must be between 1 and 100"),
+  query("sortBy").optional().isString(),
+  query("order").optional().isIn(["asc", "desc"]).withMessage('order must be "asc" or "desc"'),
   runValidation,
 ];
 
@@ -195,12 +154,54 @@ module.exports = {
   validateRegister,
   validateLogin,
   validateUpdateUser,
+  validateCreateUser,
   validateCreateEvent,
   validateUpdateEvent,
-  validateCreateUser,
+  validateCreateReclamation,
+  validateUpdateReclamation,
+  validateUpdateStatut,
   validateCreateReservation,
   validateCancelReservation,
   validateMongoId,
   validatePagination,
+  validateQueryParams,
   runValidation,
 };
+
+// ─── Auth v2 ──────────────────────────────────────────────────────────────────
+const validateForgotPassword = [
+  body("email").trim().notEmpty().withMessage("Email is required")
+    .isEmail().withMessage("Please provide a valid email address").normalizeEmail(),
+  runValidation,
+];
+
+const validateResetPassword = [
+  body("token").trim().notEmpty().withMessage("Reset token is required"),
+  body("password").notEmpty().withMessage("New password is required")
+    .isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
+    .matches(/\d/).withMessage("Password must contain at least one number"),
+  runValidation,
+];
+
+const validateResendVerification = [
+  body("email").trim().notEmpty().withMessage("Email is required")
+    .isEmail().withMessage("Please provide a valid email address").normalizeEmail(),
+  runValidation,
+];
+
+// ─── User v2 ──────────────────────────────────────────────────────────────────
+const validateChangePassword = [
+  body("currentPassword").notEmpty().withMessage("currentPassword is required"),
+  body("newPassword").notEmpty().withMessage("newPassword is required")
+    .isLength({ min: 6 }).withMessage("New password must be at least 6 characters")
+    .matches(/\d/).withMessage("New password must contain at least one number"),
+  runValidation,
+];
+
+// Re-export everything
+Object.assign(module.exports, {
+  validateForgotPassword,
+  validateResetPassword,
+  validateResendVerification,
+  validateChangePassword,
+});
