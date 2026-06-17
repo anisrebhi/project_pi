@@ -1,0 +1,102 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">Administration</span>
+      <h1>Événements</h1>
+      <p class="subtitle">Créez, modifiez et gérez tous les événements de la plateforme.</p>
+    </div>
+    <a routerLink="/admin/events/new" class="btn btn-primary">+ Nouvel événement</a>
+  </div>
+
+  <form [formGroup]="filters" class="card card-pad mt-16 filters-bar">
+    <div class="field" style="margin-bottom: 0;">
+      <label for="search">Recherche</label>
+      <input id="search" type="text" formControlName="search" placeholder="Titre ou description..." />
+    </div>
+    <div class="field" style="margin-bottom: 0;">
+      <label for="category">Catégorie</label>
+      <select id="category" formControlName="category">
+        <option *ngFor="let c of categories" [value]="c.value">{{ c.label }}</option>
+      </select>
+    </div>
+    <div class="field" style="margin-bottom: 0;">
+      <label for="type">Type</label>
+      <select id="type" formControlName="type">
+        <option value="">Tous</option>
+        <option value="free">Gratuit</option>
+        <option value="paid">Payant</option>
+      </select>
+    </div>
+  </form>
+
+  <div class="alert alert-error mt-16" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="mt-16" *ngIf="loading" style="display:flex; justify-content:center; padding: 48px 0;">
+    <span class="spinner"></span>
+  </div>
+
+  <ng-container *ngIf="!loading && !errorMessage">
+    <div class="table-wrap mt-16" *ngIf="events.length > 0; else empty">
+      <table>
+        <thead>
+          <tr>
+            <th>Événement</th>
+            <th>Début</th>
+            <th>Fin</th>
+            <th>Catégorie</th>
+            <th>Type</th>
+            <th>Participants</th>
+            <th>Statut</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let event of events">
+            <td class="cell-strong">{{ event.title }}</td>
+            <td>{{ event.startDate | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ event.endDate | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td class="cell-muted">{{ event.category || '—' }}</td>
+            <td>
+              <span class="badge" [class]="event.type === 'paid' ? 'badge-paid' : 'badge-free'">
+                {{ event.type === 'paid' ? (event.price + ' DT') : 'Gratuit' }}
+              </span>
+            </td>
+            <td class="cell-muted">{{ event.participantCount ?? event.participants.length }} / {{ event.capacity }}</td>
+            <td>
+              <span class="badge badge-cancelled" *ngIf="!event.isActive">Désactivé</span>
+              <span class="badge badge-pending" *ngIf="event.isActive && isPast(event)">Passé</span>
+              <span class="badge badge-confirmed" *ngIf="event.isActive && !isPast(event)">Actif</span>
+            </td>
+            <td>
+              <div class="flex gap-8">
+                <a class="btn btn-secondary btn-sm" [routerLink]="['/admin/events', event._id, 'edit']">Modifier</a>
+                <button class="btn btn-danger btn-sm" (click)="deleteEvent(event)">Supprimer</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #empty>
+      <div class="state-block card mt-16">
+        <h3>Aucun événement trouvé</h3>
+        <p>Ajustez vos filtres ou créez un nouvel événement.</p>
+      </div>
+    </ng-template>
+
+    <div class="flex-between mt-16" *ngIf="pagination && pagination.totalPages > 1">
+      <span class="text-sm muted">
+        Page {{ pagination.currentPage }} / {{ pagination.totalPages }} — {{ pagination.total }} événement(s)
+      </span>
+      <div class="flex gap-8">
+        <button class="btn btn-secondary btn-sm" [disabled]="!pagination.hasPrevPage" (click)="goToPage(page - 1)">
+          ← Précédent
+        </button>
+        <button class="btn btn-secondary btn-sm" [disabled]="!pagination.hasNextPage" (click)="goToPage(page + 1)">
+          Suivant →
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</div>

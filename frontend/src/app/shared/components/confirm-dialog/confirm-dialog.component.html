@@ -1,0 +1,19 @@
+<div class="confirm-overlay" *ngIf="dialog.active() as req" (click)="dialog.resolve(false)">
+  <div class="confirm-box" (click)="$event.stopPropagation()">
+    <h3>{{ req.title }}</h3>
+    <p>{{ req.message }}</p>
+    <div class="confirm-actions">
+      <button class="btn btn-secondary" (click)="dialog.resolve(false)">
+        {{ req.cancelLabel || 'Annuler' }}
+      </button>
+      <button
+        class="btn"
+        [class.btn-danger-solid]="req.danger"
+        [class.btn-primary]="!req.danger"
+        (click)="dialog.resolve(true)"
+      >
+        {{ req.confirmLabel || 'Confirmer' }}
+      </button>
+    </div>
+  </div>
+</div>

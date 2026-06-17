@@ -1,0 +1,16 @@
+.auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 15% 15%, var(--color-primary-soft) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, var(--color-accent-soft) 0%, transparent 45%),
+    var(--color-bg);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+}

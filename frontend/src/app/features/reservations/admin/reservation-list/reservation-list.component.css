@@ -1,0 +1,9 @@
+.filters-bar {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  align-items: end;
+}
+@media (max-width: 640px) {
+  .filters-bar { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,22 @@
+.filters-bar {
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: 280px;
+  gap: 16px;
+  align-items: end;
+}
+
+.reservation-card {
+  display: block;
+  color: var(--color-ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.reservation-card:hover {
+  text-decoration: none;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-pop);
+}
+
+.reservation-card h3 {
+  font-size: 18px;
+}

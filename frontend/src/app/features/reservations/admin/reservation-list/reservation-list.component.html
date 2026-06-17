@@ -1,0 +1,99 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">Administration</span>
+      <h1>Réservations</h1>
+      <p class="subtitle">Vue complète de toutes les réservations effectuées sur la plateforme.</p>
+    </div>
+  </div>
+
+  <form [formGroup]="filters" class="card card-pad filters-bar">
+    <div class="field" style="margin-bottom: 0;">
+      <label for="search">Recherche (utilisateur ou événement)</label>
+      <input id="search" type="text" formControlName="search" placeholder="Nom, email, titre d'événement..." />
+    </div>
+    <div class="field" style="margin-bottom: 0;">
+      <label for="status">Statut</label>
+      <select id="status" formControlName="status">
+        <option value="">Tous les statuts</option>
+        <option value="confirmed">Confirmée</option>
+        <option value="pending">En attente</option>
+        <option value="cancelled">Annulée</option>
+      </select>
+    </div>
+  </form>
+
+  <div class="alert alert-error mt-16" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="mt-16" *ngIf="loading" style="display:flex; justify-content:center; padding: 48px 0;">
+    <span class="spinner"></span>
+  </div>
+
+  <ng-container *ngIf="!loading && !errorMessage">
+    <div class="table-wrap mt-16" *ngIf="visibleReservations.length > 0; else empty">
+      <table>
+        <thead>
+          <tr>
+            <th>Référence</th>
+            <th>Utilisateur</th>
+            <th>Événement</th>
+            <th>Billets</th>
+            <th>Montant</th>
+            <th>Statut</th>
+            <th>Réservée le</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let reservation of visibleReservations">
+            <td class="cell-muted" style="font-family: var(--font-mono); font-size: 12px;">
+              {{ reservation._id.slice(-8) }}
+            </td>
+            <td>
+              <div class="cell-strong">{{ asUser(reservation).fullName }}</div>
+              <div class="cell-muted text-sm">{{ asUser(reservation).email }}</div>
+            </td>
+            <td>
+              <div class="cell-strong">{{ asEvent(reservation).title }}</div>
+              <div class="cell-muted text-sm">{{ asEvent(reservation).startDate | date: 'dd/MM/yyyy HH:mm' }}</div>
+            </td>
+            <td>{{ reservation.numberOfTickets }}</td>
+            <td>{{ reservation.totalPrice }} DT</td>
+            <td><app-status-badge [status]="reservation.status"></app-status-badge></td>
+            <td class="cell-muted">{{ reservation.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <button
+                class="btn btn-danger btn-sm"
+                *ngIf="reservation.status !== 'cancelled'"
+                (click)="cancelReservation(reservation)"
+              >
+                Annuler
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #empty>
+      <div class="state-block card mt-16">
+        <h3>Aucune réservation trouvée</h3>
+        <p>Ajustez vos filtres pour afficher d'autres résultats.</p>
+      </div>
+    </ng-template>
+
+    <div class="flex-between mt-16" *ngIf="pagination && pagination.totalPages > 1">
+      <span class="text-sm muted">
+        Page {{ pagination.currentPage }} / {{ pagination.totalPages }} — {{ pagination.total }} réservation(s)
+      </span>
+      <div class="flex gap-8">
+        <button class="btn btn-secondary btn-sm" [disabled]="!pagination.hasPrevPage" (click)="goToPage(page - 1)">
+          ← Précédent
+        </button>
+        <button class="btn btn-secondary btn-sm" [disabled]="!pagination.hasNextPage" (click)="goToPage(page + 1)">
+          Suivant →
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</div>

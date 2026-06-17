@@ -1,0 +1,50 @@
+<header class="navbar">
+  <div class="navbar-inner">
+    <a class="brand" routerLink="/">
+      <span class="brand-mark">●</span>
+      <span class="brand-name">Event<span class="brand-accent">Pass</span></span>
+    </a>
+
+    <nav class="nav-links" *ngIf="auth.isAuthenticated()">
+      <ng-container *ngIf="auth.isAdmin(); else userLinks">
+        <a routerLink="/admin/events" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">
+          Événements
+        </a>
+        <a routerLink="/admin/reservations" routerLinkActive="active">
+          Réservations
+        </a>
+        <a routerLink="/manage/events" routerLinkActive="active" class="nav-manage">
+          ⚙ Gestion
+        </a>
+      </ng-container>
+
+      <ng-template #userLinks>
+        <a routerLink="/events" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">
+          Événements
+        </a>
+        <a routerLink="/my-reservations" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }">
+          Mes réservations
+        </a>
+        <a routerLink="/manage/events" routerLinkActive="active" class="nav-manage">
+          ⚙ Gestion
+        </a>
+      </ng-template>
+    </nav>
+
+    <div class="navbar-right" *ngIf="auth.isAuthenticated()">
+      <div class="user-chip">
+        <span class="user-avatar">{{ auth.currentUser()?.fullName?.charAt(0) }}</span>
+        <div class="user-meta">
+          <span class="user-name">{{ auth.currentUser()?.fullName }}</span>
+          <span class="user-role">{{ auth.currentUser()?.role }}</span>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" (click)="logout()">Déconnexion</button>
+    </div>
+
+    <div class="navbar-right" *ngIf="!auth.isAuthenticated()">
+      <a class="btn btn-secondary btn-sm" routerLink="/login">Connexion</a>
+      <a class="btn btn-primary btn-sm" routerLink="/register">Créer un compte</a>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,73 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">Catalogue</span>
+      <h1>Événements à venir</h1>
+      <p class="subtitle">Découvrez et réservez les prochains événements disponibles.</p>
+    </div>
+  </div>
+
+  <form [formGroup]="filters" class="card card-pad filters-bar">
+    <div class="field" style="margin-bottom: 0;">
+      <label for="search">Recherche</label>
+      <input id="search" type="text" formControlName="search" placeholder="Titre ou description..." />
+    </div>
+    <div class="field" style="margin-bottom: 0;">
+      <label for="category">Catégorie</label>
+      <select id="category" formControlName="category">
+        <option *ngFor="let c of categories" [value]="c.value">{{ c.label }}</option>
+      </select>
+    </div>
+  </form>
+
+  <div class="alert alert-error mt-16" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="mt-16" *ngIf="loading" style="display:flex; justify-content:center; padding: 48px 0;">
+    <span class="spinner"></span>
+  </div>
+
+  <ng-container *ngIf="!loading && !errorMessage">
+    <div class="grid grid-3 mt-16" *ngIf="events.length > 0; else empty">
+      <a class="event-card card" *ngFor="let event of events" [routerLink]="['/events', event._id]">
+        <div class="event-card-top">
+          <span class="badge" [class]="event.type === 'paid' ? 'badge-paid' : 'badge-free'">
+            {{ event.type === 'paid' ? (event.price + ' DT') : 'Gratuit' }}
+          </span>
+          <span class="event-category" *ngIf="event.category">{{ event.category }}</span>
+        </div>
+        <div class="card-pad">
+          <h3>{{ event.title }}</h3>
+          <p class="text-sm muted mt-8">{{ event.startDate | date: 'EEEE dd MMMM yyyy, HH:mm' }}</p>
+          <p class="text-sm muted mt-8" *ngIf="event.location?.address">📍 {{ event.location?.address }}</p>
+          <div class="flex-between mt-16">
+            <span class="text-sm" [class.muted]="spotsLeft(event) > 0" [class.danger-text]="spotsLeft(event) <= 0">
+              {{ spotsLeft(event) > 0 ? (spotsLeft(event) + ' places restantes') : 'Complet' }}
+            </span>
+            <span class="btn-ghost btn-sm" style="font-weight:700;">Voir détails →</span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <ng-template #empty>
+      <div class="state-block card mt-16">
+        <h3>Aucun événement disponible</h3>
+        <p>Revenez bientôt, ou ajustez vos filtres de recherche.</p>
+      </div>
+    </ng-template>
+
+    <div class="flex-between mt-24" *ngIf="pagination && pagination.totalPages > 1">
+      <span class="text-sm muted">
+        Page {{ pagination.currentPage }} / {{ pagination.totalPages }} — {{ pagination.total }} événement(s)
+      </span>
+      <div class="flex gap-8">
+        <button class="btn btn-secondary btn-sm" [disabled]="!pagination.hasPrevPage" (click)="goToPage(page - 1)">
+          ← Précédent
+        </button>
+        <button class="btn btn-secondary btn-sm" [disabled]="!pagination.hasNextPage" (click)="goToPage(page + 1)">
+          Suivant →
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</div>

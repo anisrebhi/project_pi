@@ -1,0 +1,154 @@
+<div class="page page-narrow">
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">Administration</span>
+      <h1>{{ isEditMode ? "Modifier l'événement" : 'Nouvel événement' }}</h1>
+      <p class="subtitle">
+        {{ isEditMode ? 'Mettez à jour les informations de cet événement.' : 'Renseignez les informations du nouvel événement.' }}
+      </p>
+    </div>
+    <a routerLink="/admin/events" class="btn btn-secondary">← Retour à la liste</a>
+  </div>
+
+  <div class="card card-pad" *ngIf="loadingEvent" style="display:flex; justify-content:center; padding: 48px 0;">
+    <span class="spinner"></span>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="card card-pad" *ngIf="!loadingEvent">
+    <div class="alert alert-error" *ngIf="serverError">{{ serverError }}</div>
+
+    <div class="field">
+      <label for="title">Titre de l'événement *</label>
+      <input
+        id="title"
+        type="text"
+        formControlName="title"
+        [class.invalid]="f['title'].invalid && f['title'].touched"
+        placeholder="Conférence annuelle Tech Innovators"
+      />
+      <span class="error-text" *ngIf="f['title'].touched && f['title'].errors?.['required']">
+        Le titre est requis.
+      </span>
+      <span class="error-text" *ngIf="f['title'].touched && f['title'].errors?.['minlength']">
+        Le titre doit contenir au moins 3 caractères.
+      </span>
+    </div>
+
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea
+        id="description"
+        formControlName="description"
+        placeholder="Décrivez le programme, les intervenants, les points clés..."
+      ></textarea>
+      <span class="error-text" *ngIf="f['description'].errors?.['maxlength']">
+        La description ne doit pas dépasser 2000 caractères.
+      </span>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label for="category">Catégorie</label>
+        <select id="category" formControlName="category">
+          <option value="conference">Conférence</option>
+          <option value="workshop">Atelier</option>
+          <option value="meeting">Réunion</option>
+          <option value="sport">Sport</option>
+          <option value="other">Autre</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="address">Lieu</label>
+        <input id="address" type="text" formControlName="address" placeholder="Tunis, Tunisie" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label for="startDate">Date et heure de début *</label>
+        <input
+          id="startDate"
+          type="datetime-local"
+          formControlName="startDate"
+          [min]="minDateTime"
+          [class.invalid]="f['startDate'].invalid && f['startDate'].touched"
+        />
+        <span class="error-text" *ngIf="f['startDate'].touched && f['startDate'].errors?.['required']">
+          La date de début est requise.
+        </span>
+        <span class="error-text" *ngIf="f['startDate'].touched && f['startDate'].errors?.['pastDate']">
+          La date de l'événement doit être postérieure à la date actuelle. Création/modification avec une date passée impossible.
+        </span>
+      </div>
+
+      <div class="field">
+        <label for="endDate">Date et heure de fin *</label>
+        <input
+          id="endDate"
+          type="datetime-local"
+          formControlName="endDate"
+          [class.invalid]="f['endDate'].invalid && f['endDate'].touched"
+        />
+        <span class="error-text" *ngIf="f['endDate'].touched && f['endDate'].errors?.['required']">
+          La date de fin est requise.
+        </span>
+        <span class="error-text" *ngIf="f['endDate'].touched && f['endDate'].errors?.['dateRangeInvalid']">
+          La date de fin doit être postérieure à la date de début.
+        </span>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label for="capacity">Capacité (nombre de places) *</label>
+        <input
+          id="capacity"
+          type="number"
+          formControlName="capacity"
+          min="1"
+          [class.invalid]="f['capacity'].invalid && f['capacity'].touched"
+        />
+        <span class="error-text" *ngIf="f['capacity'].touched && f['capacity'].errors?.['required']">
+          La capacité est requise.
+        </span>
+        <span class="error-text" *ngIf="f['capacity'].touched && f['capacity'].errors?.['min']">
+          La capacité doit être d'au moins 1 place.
+        </span>
+      </div>
+
+      <div class="field">
+        <label for="type">Type d'événement *</label>
+        <select id="type" formControlName="type">
+          <option value="free">Gratuit</option>
+          <option value="paid">Payant</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field" *ngIf="f['type'].value === 'paid'">
+      <label for="price">Prix par billet (DT) *</label>
+      <input
+        id="price"
+        type="number"
+        formControlName="price"
+        min="0.01"
+        step="0.01"
+        [class.invalid]="f['price'].invalid && f['price'].touched"
+      />
+      <span class="error-text" *ngIf="f['price'].touched && f['price'].errors?.['required']">
+        Le prix est requis pour un événement payant.
+      </span>
+      <span class="error-text" *ngIf="f['price'].touched && f['price'].errors?.['min']">
+        Le prix doit être supérieur à 0.
+      </span>
+    </div>
+
+    <div class="flex gap-12 mt-16">
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
+        <span class="spinner" *ngIf="loading"></span>
+        {{ loading ? 'Enregistrement...' : (isEditMode ? 'Enregistrer les modifications' : "Créer l'événement") }}
+      </button>
+      <a routerLink="/admin/events" class="btn btn-secondary">Annuler</a>
+    </div>
+  </form>
+</div>
