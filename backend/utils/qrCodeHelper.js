@@ -79,15 +79,14 @@ const generateEventQRCodeBuffer = async (event, baseUrl) => {
  * @returns {string} JSON string
  */
 const buildReservationQRPayload = (reservation, event, user, baseUrl) => {
-  const verifyUrl = `${baseUrl}/reservations/${reservation._id}/verify`;
+  // QR Code contient uniquement les informations d'identité du participant
+  const nameParts = (user.fullName || '').trim().split(/\s+/);
+  const firstName = nameParts.slice(0, 1).join(' ');
+  const lastName  = nameParts.slice(1).join(' ');
   return JSON.stringify({
-    reservationId: reservation._id.toString(),
-    eventId: event._id.toString(),
-    eventTitle: event.title,
-    userId: user._id.toString(),
-    numberOfTickets: reservation.numberOfTickets,
-    status: reservation.status,
-    url: verifyUrl,
+    firstName,
+    lastName,
+    email: user.email,
   });
 };
 

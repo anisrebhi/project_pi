@@ -18,6 +18,33 @@ const reservationSchema = new mongoose.Schema(
       min: [1, 'At least 1 ticket required'],
       max: [20, 'Cannot book more than 20 tickets at once'],
     },
+    // Ticket type selected (Standard / VIP / Premium / Etudiant). Null for events
+    // that don't define ticketTypes (legacy flat pricing on the event itself).
+    ticketType: {
+      type: String,
+      enum: { values: ['Standard', 'VIP', 'Premium', 'Etudiant', null], message: '{VALUE} is not a valid ticket type' },
+      default: null,
+    },
+    unitPrice: {
+      type: Number,
+      default: 0,
+      min: [0, 'Unit price cannot be negative'],
+    },
+    isEarlyBird: {
+      type: Boolean,
+      default: false,
+    },
+    promoCode: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      default: null,
+    },
+    discountAmount: {
+      type: Number,
+      default: 0,
+      min: [0, 'Discount amount cannot be negative'],
+    },
     totalPrice: {
       type: Number,
       default: 0,
@@ -51,6 +78,11 @@ const reservationSchema = new mongoose.Schema(
     },
     // Timestamp of when the confirmation email (with QR code / ticket) was sent to the user
     confirmationSentAt: {
+      type: Date,
+      default: null,
+    },
+    // Timestamp of when the 24-hour reminder email was sent
+    reminderSentAt: {
       type: Date,
       default: null,
     },

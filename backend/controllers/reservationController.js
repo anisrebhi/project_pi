@@ -18,6 +18,7 @@
 
 const Reservation = require('../models/Reservation');
 const Event       = require('../models/Event');
+const PromoCode   = require('../models/PromoCode');
 const { User, ROLES } = require('../models/User');
 
 const { sendError } = require('../utils/apiResponse');
@@ -25,6 +26,7 @@ const { generateReservationQRCode } = require('../utils/qrCodeHelper');
 const { sendMail } = require('../utils/emailService');
 const { buildReservationConfirmationEmail } = require('../utils/emailTemplates');
 const { generateReservationTicketPDF } = require('../utils/pdfGenerator');
+const { promoteFromWaitlist } = require('../utils/waitlistService');
 
 const ok = (res, code, message, data = {}) =>
   res.status(code).json({ success: true, statusCode: code, message, ...data });
@@ -74,7 +76,7 @@ const issueTicketAndNotify = async (reservation, event, user) => {
 
 const createReservation = async (req, res, next) => {
   try {
-    const { eventId, numberOfTickets } = req.body;
+    const { eventId, numberOfTickets, ticketType, promoCode: promoCodeRaw } = req.body;
     let { userId } = req.body;
 
     // ─── Authorization: who is this reservation for? ────────────────────────
@@ -108,7 +110,41 @@ const createReservation = async (req, res, next) => {
       e.statusCode = 400; return next(e);
     }
 
-    // 3. Vérifier la capacité disponible
+    // 3. Résoudre le type de billet et son prix (gère le tarif Early Bird)
+    let unitPrice = event.price;
+    let isEarlyBird = false;
+    let resolvedTicketType = null;
+
+    if (event.ticketTypes && event.ticketTypes.length > 0) {
+      if (!ticketType) {
+        const e = new Error(`This event requires a ticket type. Choose one of: ${event.ticketTypes.map((t) => t.name).join(', ')}.`);
+        e.statusCode = 400; return next(e);
+      }
+      const pricing = event.getTicketPrice(ticketType);
+      if (!pricing) {
+        const e = new Error(`Ticket type "${ticketType}" is not available for this event.`);
+        e.statusCode = 400; return next(e);
+      }
+      unitPrice = pricing.unitPrice;
+      isEarlyBird = pricing.isEarlyBird;
+      resolvedTicketType = ticketType;
+
+      // 3a. Vérifier le quota propre à ce type de billet, s'il est défini
+      if (pricing.ticketType.quantity !== null && pricing.ticketType.quantity !== undefined) {
+        const takenForType = await Reservation.aggregate([
+          { $match: { event: event._id, ticketType, status: { $ne: 'cancelled' } } },
+          { $group: { _id: null, total: { $sum: '$numberOfTickets' } } },
+        ]);
+        const bookedForType = takenForType[0]?.total || 0;
+        const remainingForType = pricing.ticketType.quantity - bookedForType;
+        if (numberOfTickets > remainingForType) {
+          const e = new Error(`Not enough "${ticketType}" tickets remaining. Only ${Math.max(0, remainingForType)} left.`);
+          e.statusCode = 409; return next(e);
+        }
+      }
+    }
+
+    // 4. Vérifier la capacité globale disponible
     if (event.capacity !== null) {
       const takenTickets = await Reservation.aggregate([
         { $match: { event: event._id, status: { $ne: 'cancelled' } } },
@@ -117,11 +153,29 @@ const createReservation = async (req, res, next) => {
       const booked   = takenTickets[0]?.total || 0;
       const remaining = event.capacity - booked;
       if (numberOfTickets > remaining) {
-        const e = new Error(
-          `Not enough capacity. Only ${remaining} ticket(s) remaining.`
+        const err = new Error(
+          remaining === 0
+            ? `This event is fully booked. You can join the waitlist.`
+            : `Not enough capacity. Only ${remaining} ticket(s) remaining.`
         );
-        e.statusCode = 409; return next(e);
+        err.statusCode = 409;
+        err.waitlistAvailable = remaining === 0;
+        return next(err);
       }
+    }
+
+    // 5. Vérifier la limite de billets par utilisateur pour cet événement
+    const maxPerUser = event.maxTicketsPerUser || 20;
+    const userExisting = await Reservation.aggregate([
+      { $match: { event: event._id, user: user._id, status: { $ne: 'cancelled' } } },
+      { $group: { _id: null, total: { $sum: '$numberOfTickets' } } },
+    ]);
+    const alreadyHeld = userExisting[0]?.total || 0;
+    if (alreadyHeld + numberOfTickets > maxPerUser) {
+      const e = new Error(
+        `You can reserve at most ${maxPerUser} ticket(s) for this event. You already hold ${alreadyHeld}.`
+      );
+      e.statusCode = 409; return next(e);
     }
 
     const existing = await Reservation.findOne({
@@ -132,22 +186,55 @@ const createReservation = async (req, res, next) => {
       e.statusCode = 409; return next(e);
     }
 
-    const totalPrice = event.price * numberOfTickets;
+    // 6. Appliquer le code promo, le cas échéant
+    let discountAmount = 0;
+    let appliedPromoCode = null;
+    const grossPrice = unitPrice * numberOfTickets;
+
+    if (promoCodeRaw) {
+      const promo = await PromoCode.findOne({
+        code: promoCodeRaw.trim().toUpperCase(),
+        $or: [{ event: eventId }, { event: null }],
+      });
+      if (!promo) {
+        const e = new Error('Invalid promo code for this event.');
+        e.statusCode = 400; return next(e);
+      }
+      const validity = promo.isValidNow();
+      if (!validity.ok) {
+        const e = new Error(validity.reason);
+        e.statusCode = 400; return next(e);
+      }
+      discountAmount = promo.computeDiscount(grossPrice);
+      appliedPromoCode = promo;
+    }
+
+    const totalPrice = Math.max(0, grossPrice - discountAmount);
 
     const reservation = await Reservation.create({
       user: userId,
       event: eventId,
       numberOfTickets,
+      ticketType: resolvedTicketType,
+      unitPrice,
+      isEarlyBird,
+      promoCode: appliedPromoCode ? appliedPromoCode.code : null,
+      discountAmount,
       totalPrice,
       status: 'confirmed',
     });
+
+    if (appliedPromoCode) {
+      appliedPromoCode.usedCount += 1;
+      await appliedPromoCode.save();
+    }
 
     await Promise.all([
       Event.findByIdAndUpdate(eventId, { $addToSet: { participants: userId } }),
       User.findByIdAndUpdate(userId,   { $addToSet: { events: eventId } }),
     ]);
 
-    // 4. Générer le QR code du billet et envoyer l'email de confirmation
+    // 7. Générer le QR code du billet et envoyer l'email de confirmation
     //    (uniquement si la réservation est confirmée)
     const notification = await issueTicketAndNotify(reservation, event, user);
 
@@ -280,6 +367,13 @@ const cancelReservation = async (req, res, next) => {
         $pull: { events: reservation.event },
       }),
     ]);
+
+    // Fire-and-forget: promote next user from waitlist for the freed spots
+    promoteFromWaitlist(
+      reservation.event.toString(),
+      reservation.ticketType || null,
+      reservation.numberOfTickets
+    ).catch((err) => console.error('[Waitlist] Promotion failed after cancellation:', err.message));
 
     await reservation.populate([
       { path: 'user',  select: 'fullName email' },

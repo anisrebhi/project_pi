@@ -1,35 +1,39 @@
 const multer = require('multer');
 const path   = require('path');
+const fs     = require('fs');
 
-// ─── Storage: local disk in /uploads/events ──────────────────────────────────
-const storage = multer.diskStorage({
+// Ensure directories exist
+const ensureDir = (dir) => { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); };
+
+// ─── Generic storage factory ──────────────────────────────────────────────────
+const makeStorage = (subdir) => multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '..', 'uploads'));
+    const dest = path.join(__dirname, '..', 'uploads', subdir);
+    ensureDir(dest);
+    cb(null, dest);
   },
   filename: (req, file, cb) => {
     const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
     const ext    = path.extname(file.originalname).toLowerCase();
-    cb(null, `event-${unique}${ext}`);
+    cb(null, `${subdir.slice(0, -1)}-${unique}${ext}`);
   },
 });
 
-// ─── File filter: images only ─────────────────────────────────────────────────
-const fileFilter = (req, file, cb) => {
+const imageFilter = (req, file, cb) => {
   const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-  if (allowed.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only JPEG, PNG, WEBP and GIF images are allowed'), false);
-  }
+  if (allowed.includes(file.mimetype)) cb(null, true);
+  else cb(new Error('Only JPEG, PNG, WEBP and GIF images are allowed'), false);
 };
 
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max per file
-});
-
-// Middleware: up to 5 images per request (field name: "images")
+// ─── Event cover images (up to 5) ────────────────────────────────────────────
+const upload = multer({ storage: makeStorage('events'), fileFilter: imageFilter, limits: { fileSize: 5 * 1024 * 1024 } });
 const uploadEventImages = upload.array('images', 5);
 
-module.exports = { uploadEventImages };
+// ─── Gallery photos (up to 20 per batch) ─────────────────────────────────────
+const uploadGallery = multer({
+  storage: makeStorage('gallery'),
+  fileFilter: imageFilter,
+  limits: { fileSize: 8 * 1024 * 1024 },
+}).array('photos', 20);
+
+module.exports = { uploadEventImages, uploadGallery };

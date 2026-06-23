@@ -22,6 +22,56 @@ const imageSchema = new mongoose.Schema(
   { _id: false }
 );
 
+// ─── Ticket Types ─────────────────────────────────────────────────────────────
+const TICKET_TYPE_NAMES = ['Standard', 'VIP', 'Premium', 'Etudiant'];
+
+const earlyBirdSchema = new mongoose.Schema(
+  {
+    enabled:  { type: Boolean, default: false },
+    price:    { type: Number, default: null, min: [0, 'Early bird price cannot be negative'] },
+    deadline: { type: Date,   default: null },
+  },
+  { _id: false }
+);
+
+const ticketTypeSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      enum: { values: TICKET_TYPE_NAMES, message: '{VALUE} is not a valid ticket type' },
+      required: [true, 'Ticket type name is required'],
+    },
+    price: {
+      type: Number,
+      required: [true, 'Ticket type price is required'],
+      min: [0, 'Price cannot be negative'],
+    },
+    // Maximum tickets available for this type. null = bounded only by the event's overall capacity.
+    quantity: {
+      type: Number,
+      default: null,
+      min: [0, 'Quantity cannot be negative'],
+    },
+    earlyBird: { type: earlyBirdSchema, default: () => ({}) },
+  },
+  { _id: false }
+);
+
+ticketTypeSchema.pre('validate', function (next) {
+  if (this.earlyBird?.enabled) {
+    if (this.earlyBird.price === null || this.earlyBird.price === undefined) {
+      return next(new Error(`Early bird price is required for ticket type "${this.name}" when early bird is enabled`));
+    }
+    if (this.earlyBird.price >= this.price) {
+      return next(new Error(`Early bird price must be lower than the regular price for ticket type "${this.name}"`));
+    }
+    if (!this.earlyBird.deadline) {
+      return next(new Error(`Early bird deadline is required for ticket type "${this.name}" when early bird is enabled`));
+    }
+  }
+  next();
+});
+
 const eventSchema = new mongoose.Schema(
   {
     title: {
@@ -70,6 +120,13 @@ const eventSchema = new mongoose.Schema(
       default: 'free',
     },
     price:  { type: Number, default: 0, min: [0, 'Price cannot be negative'] },
+    // Ticket types (Standard / VIP / Premium / Etudiant) each with their own price,
+    // optional quantity cap and optional early bird pricing. Only relevant for paid events;
+    // when empty the legacy single `price` field is used as before.
+    ticketTypes: { type: [ticketTypeSchema], default: [] },
+    // Maximum number of tickets a single user may reserve for this event (hard-capped at 20
+    // by the reservation schema/validators regardless of this value).
+    maxTicketsPerUser: { type: Number, default: 20, min: [1, 'maxTicketsPerUser must be at least 1'], max: [20, 'maxTicketsPerUser cannot exceed 20'] },
     images: { type: [imageSchema], default: [] },
     qrCode: {
       type: String,
@@ -161,4 +218,30 @@ eventSchema.methods.softDelete = async function () {
   return await this.save();
 };
 
+/**
+ * Resolve the effective unit price for a given ticket type name, accounting
+ * for an active early bird window. Falls back to the legacy flat `price`
+ * field when the event has no configured ticket types (backward compatibility).
+ */
+eventSchema.methods.getTicketPrice = function (ticketTypeName) {
+  if (!this.ticketTypes || this.ticketTypes.length === 0) {
+    return { unitPrice: this.price, isEarlyBird: false, ticketType: null };
+  }
+  const tt = this.ticketTypes.find((t) => t.name === ticketTypeName);
+  if (!tt) return null;
+
+  const earlyBirdActive = !!(
+    tt.earlyBird?.enabled &&
+    tt.earlyBird.deadline &&
+    tt.earlyBird.deadline.getTime() > Date.now()
+  );
+
+  return {
+    unitPrice: earlyBirdActive ? tt.earlyBird.price : tt.price,
+    isEarlyBird: earlyBirdActive,
+    ticketType: tt,
+  };
+};
+
 module.exports = mongoose.model('Event', eventSchema);
+module.exports.TICKET_TYPE_NAMES = TICKET_TYPE_NAMES;

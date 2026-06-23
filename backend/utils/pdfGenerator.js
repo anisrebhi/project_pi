@@ -55,6 +55,8 @@ const generateReservationTicketPDF = ({ reservation, user, event, qrCodeDataUrl 
         ['Date de fin', formatDate(event.endDate)],
         ['Lieu', event.location?.address || 'N/A'],
         ['Nombre de billets', String(reservation.numberOfTickets)],
+        ...(reservation.ticketType ? [['Type de billet', `${reservation.ticketType}${reservation.isEarlyBird ? ' (Early Bird)' : ''}`]] : []),
+        ...(reservation.promoCode ? [['Code promo', `${reservation.promoCode} (-${reservation.discountAmount} DT)`]] : []),
         ['Montant total', `${reservation.totalPrice} ${reservation.totalPrice > 0 ? '' : '(Gratuit)'}`],
         ['Statut', reservation.status],
       ];

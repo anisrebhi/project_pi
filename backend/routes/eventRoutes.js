@@ -367,3 +367,7 @@ router.get(
 );
 
 module.exports = router;
+
+// ─── Similar events (Lot 2) ───────────────────────────────────────────────────
+const { getSimilarEvents } = require('../controllers/recommendationController');
+router.get('/:id/similar', validateMongoId('id'), getSimilarEvents);

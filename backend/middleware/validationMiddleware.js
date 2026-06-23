@@ -82,6 +82,14 @@ const validateCreateEvent = [
     .isInt({ min: 1, max: 100000 }).withMessage("Capacity must be an integer between 1 and 100,000"),
   body("type").optional().isIn(["free", "paid"]).withMessage('Type must be "free" or "paid"'),
   body("price").optional().isFloat({ min: 0 }).withMessage("Price cannot be negative"),
+  body("maxTicketsPerUser").optional().isInt({ min: 1, max: 20 }).withMessage("maxTicketsPerUser must be between 1 and 20"),
+  body("ticketTypes").optional().isArray().withMessage("ticketTypes must be an array"),
+  body("ticketTypes.*.name").optional().isIn(["Standard", "VIP", "Premium", "Etudiant"]).withMessage("Invalid ticket type name"),
+  body("ticketTypes.*.price").optional().isFloat({ min: 0 }).withMessage("Ticket type price cannot be negative"),
+  body("ticketTypes.*.quantity").optional({ nullable: true }).isInt({ min: 0 }).withMessage("Ticket type quantity must be a non-negative integer"),
+  body("ticketTypes.*.earlyBird.enabled").optional().isBoolean().withMessage("earlyBird.enabled must be a boolean"),
+  body("ticketTypes.*.earlyBird.price").optional({ nullable: true }).isFloat({ min: 0 }).withMessage("earlyBird.price cannot be negative"),
+  body("ticketTypes.*.earlyBird.deadline").optional({ nullable: true }).isISO8601().withMessage("earlyBird.deadline must be a valid date"),
   runValidation,
 ];
 
@@ -100,6 +108,14 @@ const validateUpdateEvent = [
   body("capacity").optional().isInt({ min: 1, max: 100000 }).withMessage("Capacity must be an integer between 1 and 100,000"),
   body("type").optional().isIn(["free", "paid"]).withMessage('Type must be "free" or "paid"'),
   body("price").optional().isFloat({ min: 0 }).withMessage("Price cannot be negative"),
+  body("maxTicketsPerUser").optional().isInt({ min: 1, max: 20 }).withMessage("maxTicketsPerUser must be between 1 and 20"),
+  body("ticketTypes").optional().isArray().withMessage("ticketTypes must be an array"),
+  body("ticketTypes.*.name").optional().isIn(["Standard", "VIP", "Premium", "Etudiant"]).withMessage("Invalid ticket type name"),
+  body("ticketTypes.*.price").optional().isFloat({ min: 0 }).withMessage("Ticket type price cannot be negative"),
+  body("ticketTypes.*.quantity").optional({ nullable: true }).isInt({ min: 0 }).withMessage("Ticket type quantity must be a non-negative integer"),
+  body("ticketTypes.*.earlyBird.enabled").optional().isBoolean().withMessage("earlyBird.enabled must be a boolean"),
+  body("ticketTypes.*.earlyBird.price").optional({ nullable: true }).isFloat({ min: 0 }).withMessage("earlyBird.price cannot be negative"),
+  body("ticketTypes.*.earlyBird.deadline").optional({ nullable: true }).isISO8601().withMessage("earlyBird.deadline must be a valid date"),
   runValidation,
 ];
 
@@ -137,11 +153,47 @@ const validateCreateReservation = [
   body("eventId").notEmpty().withMessage("eventId is required").isMongoId().withMessage("eventId must be a valid MongoDB ObjectId"),
   body("numberOfTickets").notEmpty().withMessage("numberOfTickets is required")
     .isInt({ min: 1, max: 20 }).withMessage("numberOfTickets must be between 1 and 20"),
+  body("ticketType").optional({ nullable: true }).isIn(["Standard", "VIP", "Premium", "Etudiant"]).withMessage("Invalid ticket type"),
+  body("promoCode").optional({ nullable: true }).trim().isLength({ min: 3, max: 30 }).withMessage("Invalid promo code"),
   runValidation,
 ];
 
 const validateCancelReservation = [
   body("cancellationReason").optional().trim(),
+  runValidation,
+];
+
+// ─── Waitlist ─────────────────────────────────────────────────────────────────
+const validateJoinWaitlist = [
+  body("eventId").notEmpty().withMessage("eventId is required").isMongoId().withMessage("eventId must be a valid MongoDB ObjectId"),
+  body("numberOfTickets").optional().isInt({ min: 1, max: 20 }).withMessage("numberOfTickets must be between 1 and 20"),
+  body("ticketType").optional({ nullable: true }).isIn(["Standard", "VIP", "Premium", "Etudiant"]).withMessage("Invalid ticket type"),
+  runValidation,
+];
+
+// ─── Promo Code ───────────────────────────────────────────────────────────────
+const validateCreatePromoCode = [
+  body("code").trim().notEmpty().withMessage("Code is required")
+    .isLength({ min: 3, max: 30 }).withMessage("Code must be 3–30 characters")
+    .matches(/^[A-Za-z0-9_-]+$/).withMessage("Code may only contain letters, numbers, hyphens and underscores"),
+  body("discountType").notEmpty().withMessage("discountType is required")
+    .isIn(["percentage", "fixed"]).withMessage('discountType must be "percentage" or "fixed"'),
+  body("discountValue").notEmpty().withMessage("discountValue is required")
+    .isFloat({ min: 0 }).withMessage("discountValue cannot be negative")
+    .custom((value, { req }) => req.body.discountType !== "percentage" || value <= 100)
+    .withMessage("Percentage discount cannot exceed 100"),
+  body("eventId").optional({ nullable: true }).isMongoId().withMessage("eventId must be a valid MongoDB ObjectId"),
+  body("maxUses").optional({ nullable: true }).isInt({ min: 1 }).withMessage("maxUses must be a positive integer"),
+  body("expiresAt").optional({ nullable: true }).isISO8601().withMessage("expiresAt must be a valid date"),
+  runValidation,
+];
+
+const validateUpdatePromoCode = [
+  body("discountType").optional().isIn(["percentage", "fixed"]).withMessage('discountType must be "percentage" or "fixed"'),
+  body("discountValue").optional().isFloat({ min: 0 }).withMessage("discountValue cannot be negative"),
+  body("maxUses").optional({ nullable: true }).isInt({ min: 1 }).withMessage("maxUses must be a positive integer"),
+  body("expiresAt").optional({ nullable: true }).isISO8601().withMessage("expiresAt must be a valid date"),
+  body("isActive").optional().isBoolean().withMessage("isActive must be a boolean"),
   runValidation,
 ];
 
@@ -178,6 +230,9 @@ module.exports = {
   validateUpdateStatut,
   validateCreateReservation,
   validateCancelReservation,
+  validateCreatePromoCode,
+  validateUpdatePromoCode,
+  validateJoinWaitlist,
   validateMongoId,
   validatePagination,
   validateQueryParams,

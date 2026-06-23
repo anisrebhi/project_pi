@@ -51,16 +51,21 @@ const sendDevError = (err, res) => {
     success: false,
     statusCode: err.statusCode || 500,
     message: err.message,
+    waitlistAvailable: err.waitlistAvailable || false,
     stack: err.stack,
   });
 };
 
 const sendProdError = (err, res) => {
   if (err.isOperational) {
-    return res.status(err.statusCode).json({ success: false, message: err.message });
+    return res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+      waitlistAvailable: err.waitlistAvailable || false,
+    });
   }
-  console.error("💥 UNHANDLED ERROR:", err);
-  return res.status(500).json({ success: false, message: "An unexpected error occurred. Please try again later." });
+  console.error('💥 UNHANDLED ERROR:', err);
+  return res.status(500).json({ success: false, message: 'An unexpected error occurred. Please try again later.' });
 };
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────

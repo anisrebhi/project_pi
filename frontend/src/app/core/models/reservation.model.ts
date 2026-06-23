@@ -1,4 +1,4 @@
-import { EventModel } from './event.model';
+import { EventModel, TicketTypeName } from './event.model';
 import { User } from './user.model';
 
 export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled';
@@ -26,6 +26,11 @@ export interface Reservation {
   user: ReservationUser | string;
   event: ReservationEvent | string;
   numberOfTickets: number;
+  ticketType?: TicketTypeName | null;
+  unitPrice?: number;
+  isEarlyBird?: boolean;
+  promoCode?: string | null;
+  discountAmount?: number;
   totalPrice: number;
   status: ReservationStatus;
   qrCode?: string | null;
@@ -39,6 +44,8 @@ export interface Reservation {
 export interface CreateReservationInput {
   eventId: string;
   numberOfTickets: number;
+  ticketType?: TicketTypeName;
+  promoCode?: string;
   userId?: string; // ADMIN only
 }
 

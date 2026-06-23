@@ -1,9 +1,3 @@
-.filters-bar {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 16px;
-  align-items: end;
-}
-@media (max-width: 640px) {
-  .filters-bar { grid-template-columns: 1fr; }
-}
+.search-input-wrap { position: relative; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--color-muted); font-size: 18px !important; pointer-events: none; }
+.search-input-wrap input { padding-left: 40px; }

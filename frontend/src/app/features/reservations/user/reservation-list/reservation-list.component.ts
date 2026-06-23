@@ -9,6 +9,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { Reservation, ReservationEvent, ReservationQueryParams } from '../../../../core/models/reservation.model';
 import { Pagination } from '../../../../core/models/api-response.model';
 import { StatusBadgeComponent } from '../../../../shared/components/status-badge/status-badge.component';
+import { getCategoryEmoji, getCategoryLabel } from '../../../../core/utils/category.utils';
 
 @Component({
   selector: 'app-user-reservation-list',
@@ -79,4 +80,7 @@ export class UserReservationListComponent implements OnInit {
   asEvent(r: Reservation): ReservationEvent {
     return r.event as ReservationEvent;
   }
+
+  getCategoryEmoji = getCategoryEmoji;
+  getCategoryLabel = getCategoryLabel;
 }

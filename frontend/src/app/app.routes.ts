@@ -16,10 +16,13 @@ import { EventDetailComponent } from './features/events/user/event-detail/event-
 import { AdminReservationListComponent } from './features/reservations/admin/reservation-list/reservation-list.component';
 import { UserReservationListComponent } from './features/reservations/user/reservation-list/reservation-list.component';
 import { ReservationDetailComponent } from './features/reservations/user/reservation-detail/reservation-detail.component';
+import { WaitlistListComponent } from './features/waitlist/waitlist-list.component';
 
-import { NotFoundComponent } from './features/misc/not-found/not-found.component';
+import { NotFoundComponent }        from './features/misc/not-found/not-found.component';
+import { MyCertificatesComponent }   from './features/certificates/my-certificates.component';
+import { VerifyCertificateComponent } from './features/certificates/verify-certificate.component';
 import { UnauthorizedComponent } from './features/misc/unauthorized/unauthorized.component';
-import { EventManageComponent } from './features/events/manage/event-manage.component';
+import { HomeComponent } from './features/misc/home/home.component';
 
 export const routes: Routes = [
   // ─── Public / guest-only routes (no shell) ───────────────────────────────
@@ -27,18 +30,18 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent, canActivate: [guestGuard] },
   { path: 'unauthorized', component: UnauthorizedComponent },
 
-  // ─── Authenticated app shell (navbar + router-outlet) ───────────────────
+  // ─── App shell (navbar + router-outlet) ──────────────────────────────────
   {
     path: '',
     component: MainLayoutComponent,
-    canActivate: [authGuard],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'events' },
+      // ── Page d'accueil — publique, contenu adapté si connecté ───────────
+      { path: '', pathMatch: 'full', component: HomeComponent },
 
-      // ── Module Événement — Interface Administrateur ──────────────────────
+      // ── Module Événement — Interface Administrateur (ADMIN + ORGANIZER) ──
       {
         path: 'admin/events',
-        canActivate: [roleGuard(['ADMIN'])],
+        canActivate: [authGuard, roleGuard(['ADMIN', 'ORGANIZER'])],
         children: [
           { path: '', component: AdminEventListComponent },
           { path: 'new', component: EventFormComponent },
@@ -49,25 +52,31 @@ export const routes: Routes = [
       // ── Module Réservation — Interface Administrateur ────────────────────
       {
         path: 'admin/reservations',
-        canActivate: [roleGuard(['ADMIN'])],
+        canActivate: [authGuard, roleGuard(['ADMIN'])],
         children: [{ path: '', component: AdminReservationListComponent }],
       },
-
-      // ── Gestion Événements — CRUD unifié ─────────────────────────────────
-      { path: 'manage/events', component: EventManageComponent },
 
       // ── Module Événement — Interface Utilisateur ──────────────────────────
       {
         path: 'events',
+        canActivate: [authGuard],
         children: [
           { path: '', component: UserEventListComponent },
           { path: ':id', component: EventDetailComponent },
         ],
       },
 
+      // ── Liste d'attente — Interface Utilisateur ───────────────────────────
+      {
+        path: 'my-waitlist',
+        canActivate: [authGuard],
+        component: WaitlistListComponent,
+      },
+
       // ── Module Réservation — Interface Utilisateur ────────────────────────
       {
         path: 'my-reservations',
+        canActivate: [authGuard],
         children: [
           { path: '', component: UserReservationListComponent },
           { path: ':id', component: ReservationDetailComponent },
@@ -75,6 +84,9 @@ export const routes: Routes = [
       },
     ],
   },
+
+  // ─── Lot-2: Public certificate verification ──────────────────────────────
+  { path: 'verify-certificate/:code', component: VerifyCertificateComponent },
 
   // ─── Fallback ─────────────────────────────────────────────────────────
   { path: '**', component: NotFoundComponent },

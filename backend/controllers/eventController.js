@@ -6,8 +6,11 @@
 
 const Event = require("../models/Event");
 const { User, ROLES } = require("../models/User");
+const Reservation = require("../models/Reservation");
+const WaitlistEntry = require("../models/WaitlistEntry");
 const { sendSuccess, sendError } = require("../utils/apiResponse");
 const { generateEventQRCode } = require("../utils/qrCodeHelper");
+const { notifyEventModified, notifyEventCancelled } = require("../utils/notificationService");
 
 // Helper pour réponses cohérentes
 const ok = (res, code, message, data = {}) =>
@@ -78,6 +81,7 @@ const createEvent = async (req, res, next) => {
       title, description, location,
       startDate, endDate, category,
       capacity, type, price, images,
+      ticketTypes, maxTicketsPerUser,
     } = req.body;
 
     // Build images array: combine uploaded files + URL objects from body
@@ -102,6 +106,8 @@ const createEvent = async (req, res, next) => {
       price: type === 'free' ? 0 : price,
       organizer: req.user._id,
       images: [...uploadedImages, ...urlImages],
+      ticketTypes: type === 'paid' ? (ticketTypes || []) : [],
+      maxTicketsPerUser: maxTicketsPerUser || 20,
     });
 
 
@@ -148,11 +154,11 @@ const updateEvent = async (req, res, next) => {
       }
     }
 
-    const allowed = ['title','description','location','startDate','endDate','category','capacity','type','price'];
+    const allowed = ['title','description','location','startDate','endDate','category','capacity','type','price','ticketTypes','maxTicketsPerUser'];
     const updateData = Object.fromEntries(
       Object.entries(req.body).filter(([k]) => allowed.includes(k))
     );
-    if (updateData.type === 'free') updateData.price = 0;
+    if (updateData.type === 'free') { updateData.price = 0; updateData.ticketTypes = []; }
 
     const newImages = (req.files || []).map((f) => ({
       url: `${process.env.BASE_URL}/uploads/${f.filename}`,
@@ -166,6 +172,24 @@ const updateEvent = async (req, res, next) => {
     const updatedEvent = await Event.findByIdAndUpdate(id, ops,
       { new: true, runValidators: true })
       .populate({ path: "organizer", select: "fullName email" });
+
+    // Notify confirmed participants if key fields changed (fire-and-forget)
+    const notifiableFields = ['startDate', 'endDate', 'location', 'title'];
+    if (Object.keys(updateData).some((k) => notifiableFields.includes(k))) {
+      Reservation.find({ event: id, status: 'confirmed' })
+        .populate('user', 'fullName email')
+        .then((reservations) => {
+          const changes = {};
+          if (updateData.startDate) changes['Nouvelle date de début'] = new Date(updateData.startDate).toLocaleString('fr-FR');
+          if (updateData.endDate)   changes['Nouvelle date de fin']   = new Date(updateData.endDate).toLocaleString('fr-FR');
+          if (updateData.location?.address) changes['Nouveau lieu']   = updateData.location.address;
+          if (updateData.title)     changes['Nouveau titre']          = updateData.title;
+          reservations.forEach((r) =>
+            notifyEventModified(r.user, updatedEvent, changes).catch(() => {})
+          );
+        })
+        .catch(() => {});
+    }
 
     return sendSuccess(res, 200, "Event updated successfully.", updatedEvent);
   } catch (error) {
@@ -195,6 +219,21 @@ const deleteEvent = async (req, res, next) => {
 
     // Soft delete the event
     await event.softDelete();
+
+    // Notify all confirmed participants and cancel their reservations, then
+    // expire any waitlist entries (all fire-and-forget)
+    Reservation.find({ event: id, status: 'confirmed' })
+      .populate('user', 'fullName email')
+      .then(async (reservations) => {
+        await Reservation.updateMany({ event: id, status: { $ne: 'cancelled' } }, {
+          $set: { status: 'cancelled', cancelledAt: new Date(), cancellationReason: 'Event cancelled by organizer/admin' }
+        });
+        reservations.forEach((r) => notifyEventCancelled(r.user, event).catch(() => {}));
+      })
+      .catch(() => {});
+
+    WaitlistEntry.updateMany({ event: id, status: { $in: ['waiting', 'notified'] } }, { $set: { status: 'expired' } })
+      .catch(() => {});
 
     // Remove the event reference from all participants
     await User.updateMany({ events: id }, { $pull: { events: id } });
