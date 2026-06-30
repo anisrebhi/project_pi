@@ -1,0 +1,119 @@
+<div class="page page-narrow">
+  <a routerLink="/my-reservations" class="back-link">
+    <span class="material-icons">arrow_back</span>
+    Retour à mes réservations
+  </a>
+
+  <div class="spinner-center" *ngIf="loading"><span class="spinner spinner-lg"></span></div>
+
+  <div class="alert alert-error" *ngIf="errorMessage">
+    <span class="material-icons">error_outline</span>
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <ng-container *ngIf="reservation && event && !loading">
+    <div class="ticket-card animate-scale">
+
+      <div class="ticket-header">
+        <div class="ticket-header-top">
+          <span class="ticket-category">{{ event.category || 'Événement' }}</span>
+          <app-status-badge [status]="reservation.status"></app-status-badge>
+        </div>
+        <h1 class="ticket-title">{{ event.title }}</h1>
+      </div>
+
+      <div class="ticket-body">
+        <div class="event-meta">
+          <div class="meta-row">
+            <span class="material-icons meta-icon">event</span>
+            <span class="meta-text">Début</span>
+            <span class="meta-value">{{ event.startDate | date: 'EEEE d MMMM yyyy à HH:mm' }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="material-icons meta-icon">event_available</span>
+            <span class="meta-text">Fin</span>
+            <span class="meta-value">{{ event.endDate | date: 'EEEE d MMMM yyyy à HH:mm' }}</span>
+          </div>
+          <div class="meta-row" *ngIf="event.location?.address">
+            <span class="material-icons meta-icon">place</span>
+            <span class="meta-value">{{ event.location?.address }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="material-icons meta-icon">person</span>
+            <span class="meta-text">Titulaire</span>
+            <span class="meta-value">{{ user?.fullName }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="material-icons meta-icon">confirmation_number</span>
+            <span class="meta-text">Billets</span>
+            <span class="meta-value">{{ reservation.numberOfTickets }}</span>
+          </div>
+          <div class="meta-row" *ngIf="reservation.ticketType">
+            <span class="material-icons meta-icon">local_activity</span>
+            <span class="meta-text">Type de billet</span>
+            <span class="meta-value">{{ reservation.ticketType }}{{ reservation.isEarlyBird ? ' (Early Bird)' : '' }}</span>
+          </div>
+          <div class="meta-row" *ngIf="reservation.promoCode">
+            <span class="material-icons meta-icon">sell</span>
+            <span class="meta-text">Code promo</span>
+            <span class="meta-value">{{ reservation.promoCode }} (-{{ reservation.discountAmount }} DT)</span>
+          </div>
+          <div class="meta-row meta-row-total">
+            <span class="material-icons meta-icon">payments</span>
+            <span class="meta-text">Montant total</span>
+            <span class="meta-value meta-value-total">{{ reservation.totalPrice }} DT</span>
+          </div>
+        </div>
+
+        <div class="alert alert-info mt-6" *ngIf="reservation.confirmationSentAt">
+          <span class="material-icons">mail</span>
+          <span>Email de confirmation envoyé le {{ reservation.confirmationSentAt | date: 'dd/MM/yyyy HH:mm' }}, avec votre billet PDF et QR code.</span>
+        </div>
+      </div>
+
+      <div class="ticket-divider">
+        <div class="ticket-divider-line"></div>
+        <div class="ticket-divider-dot"></div>
+        <div class="ticket-divider-line"></div>
+      </div>
+
+      <div class="ticket-body ticket-qr-section">
+        <ng-container *ngIf="reservation.status === 'confirmed' && reservation.qrCode; else noQr">
+          <div class="qr-wrap">
+            <div class="qr-image-wrap">
+              <img [src]="reservation.qrCode" alt="QR code de la réservation">
+            </div>
+            <span class="qr-label">
+              <span class="material-icons">phone_android</span>
+              Présentez ce QR code à l'entrée
+            </span>
+          </div>
+        </ng-container>
+        <ng-template #noQr>
+          <div class="qr-wrap">
+            <div class="qr-placeholder">
+              <span class="material-icons">qr_code_2</span>
+            </div>
+            <span class="qr-label muted">
+              {{ reservation.status === 'cancelled' ? 'Réservation annulée' : 'QR code disponible une fois confirmée' }}
+            </span>
+          </div>
+        </ng-template>
+
+        <div class="ticket-actions">
+          <button class="btn btn-primary btn-lg btn-block" *ngIf="reservation.status === 'confirmed'" (click)="downloadTicket()" [disabled]="downloading">
+            <span class="spinner" *ngIf="downloading"></span>
+            <span class="material-icons" *ngIf="!downloading">download</span>
+            {{ downloading ? 'Génération du PDF...' : 'Télécharger le billet PDF' }}
+          </button>
+
+          <button class="btn btn-outline btn-lg btn-block" *ngIf="reservation.status !== 'cancelled'" (click)="cancelReservation()" [disabled]="cancelling">
+            <span class="spinner" *ngIf="cancelling"></span>
+            <span class="material-icons" *ngIf="!cancelling">cancel</span>
+            {{ cancelling ? 'Annulation...' : 'Annuler la réservation' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

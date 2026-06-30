@@ -1,0 +1,231 @@
+<div class="detail-page">
+  <div *ngIf="loading" class="detail-loading"><div class="spinner spinner-lg"></div></div>
+
+  <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <ng-container *ngIf="!loading && !errorMessage && event">
+    <div class="detail-container">
+      <a routerLink="/events" class="back-link">
+        <span class="material-icons">arrow_back</span>
+        <span>Retour aux événements</span>
+      </a>
+
+      <div class="detail-grid">
+        <!-- Main -->
+        <div class="detail-main">
+          <div class="detail-hero">
+            <img *ngIf="getEventImageUrl(event)" [src]="getEventImageUrl(event)" [alt]="event.title" class="detail-hero-img">
+            <div *ngIf="!getEventImageUrl(event)" class="detail-hero-placeholder">
+              {{ getCategoryEmoji(event.category) }}
+            </div>
+          </div>
+
+          <div class="detail-body">
+            <div class="detail-chips">
+              <span class="chip chip-cat">{{ getCategoryEmoji(event.category) }} {{ getCategoryLabel(event.category) }}</span>
+              <span class="chip" [class]="event.type === 'paid' ? 'chip-paid' : 'chip-free'">
+                {{ event.type === 'paid' ? (event.price + ' DT / billet') : 'Gratuit' }}
+              </span>
+              <span class="chip chip-past" *ngIf="isPast">Passé</span>
+              <span class="chip chip-full" *ngIf="!isPast && isFull">Complet</span>
+            </div>
+
+            <h1 class="detail-title">{{ event.title }}</h1>
+
+            <div class="detail-meta">
+              <div class="detail-meta-row">
+                <span class="material-icons">calendar_today</span>
+                <div>
+                  <span class="detail-meta-label">Début</span>
+                  <span class="detail-meta-value">{{ event.startDate | date:'EEEE d MMMM yyyy à HH:mm' }}</span>
+                </div>
+              </div>
+              <div class="detail-meta-row">
+                <span class="material-icons">event_available</span>
+                <div>
+                  <span class="detail-meta-label">Fin</span>
+                  <span class="detail-meta-value">{{ event.endDate | date:'EEEE d MMMM yyyy à HH:mm' }}</span>
+                </div>
+              </div>
+              <div class="detail-meta-row" *ngIf="event.location?.address">
+                <span class="material-icons">place</span>
+                <div>
+                  <span class="detail-meta-label">Adresse</span>
+                  <span class="detail-meta-value">{{ event.location?.address }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-divider"></div>
+
+            <h3 class="detail-section-title">À propos</h3>
+            <p class="detail-desc">{{ event.description || 'Aucune description fournie pour cet événement.' }}</p>
+
+            <ng-container *ngIf="event.location?.latitude && event.location?.longitude">
+              <div class="detail-divider"></div>
+              <h3 class="detail-section-title">Localisation</h3>
+              <div class="detail-map" #mapDiv></div>
+            </ng-container>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <!-- ═══════════════════════════════════════════════════════════════
+             SIDEBAR — driven by sidebarMode state machine
+             Modes: loading | reserve | full | success | past
+             ═══════════════════════════════════════════════════════════════ -->
+        <aside class="detail-side">
+          <div class="reservation-card">
+
+            <!-- Card title adapts to the current mode -->
+            <h3 class="reservation-title">
+              <ng-container [ngSwitch]="sidebarMode">
+                <ng-container *ngSwitchCase="'reserve'">Réserver votre place</ng-container>
+                <ng-container *ngSwitchCase="'full'">Complet</ng-container>
+                <ng-container *ngSwitchCase="'success'">Réservation</ng-container>
+                <ng-container *ngSwitchCase="'past'">Événement passé</ng-container>
+                <ng-container *ngSwitchDefault>Chargement…</ng-container>
+              </ng-container>
+            </h3>
+
+            <!-- Capacity bar (always shown when event loaded) -->
+            <div class="capacity-block" *ngIf="event">
+              <div class="capacity-header">
+                <span [class.text-danger]="isFull" [class.text-warning]="!isFull && fillPct() >= 70">
+                  <span class="material-icons cap-icon" *ngIf="isFull">block</span>
+                  {{ isFull ? 'Complet' : (spotsLeft + ' place' + (spotsLeft > 1 ? 's' : '') + ' restante' + (spotsLeft > 1 ? 's' : '')) }}
+                </span>
+                <span class="capacity-pct">{{ fillPct() }}%</span>
+              </div>
+              <div class="capacity-track">
+                <div class="capacity-fill"
+                  [class.warn]="fillPct() >= 70 && fillPct() < 90"
+                  [class.danger]="fillPct() >= 90"
+                  [style.width.%]="fillPct()">
+                </div>
+              </div>
+            </div>
+
+            <!-- ── LOADING ─────────────────────────────────────────────── -->
+            <div class="sidebar-loading" *ngIf="sidebarMode === 'loading'">
+              <div class="spinner spinner-sm spinner-muted"></div>
+              <span>Chargement…</span>
+            </div>
+
+            <!-- ── SUCCESS ─────────────────────────────────────────────── -->
+            <div class="alert alert-success mt-16" *ngIf="sidebarMode === 'success'">
+              <span class="material-icons">check_circle</span>
+              Réservation confirmée ! Redirection…
+            </div>
+
+            <!-- ── PAST ────────────────────────────────────────────────── -->
+            <div class="alert alert-info mt-16" *ngIf="sidebarMode === 'past'">
+              <span class="material-icons">event_busy</span>
+              Cet événement est déjà passé.
+            </div>
+
+            <!-- ── RESERVE (spots available) ───────────────────────────── -->
+            <ng-container *ngIf="sidebarMode === 'reserve'">
+
+              <form [formGroup]="form" (ngSubmit)="reserve()">
+
+                <!-- Ticket type selector -->
+                <div class="field" *ngIf="hasTicketTypes">
+                  <label for="ticketType">Type de billet</label>
+                  <select id="ticketType" formControlName="ticketType">
+                    <option *ngFor="let tt of event!.ticketTypes" [value]="tt.name">
+                      {{ tt.name }} — {{ (isEarlyBirdActive(tt) ? tt.earlyBird!.price : tt.price) | number:'1.2-2' }} DT
+                      {{ isEarlyBirdActive(tt) ? '(Early Bird 🐦)' : '' }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Number of tickets -->
+                <div class="field">
+                  <label for="numberOfTickets">Nombre de billets</label>
+                  <input
+                    id="numberOfTickets" type="number"
+                    formControlName="numberOfTickets"
+                    min="1" [max]="maxTickets" autocomplete="off"
+                    [class.invalid]="form.get('numberOfTickets')?.invalid && form.get('numberOfTickets')?.touched">
+                  <span class="helper-text" *ngIf="!form.get('numberOfTickets')?.errors">
+                    Jusqu'à {{ maxTickets }} billet(s).
+                  </span>
+                  <span class="error-text" *ngIf="form.get('numberOfTickets')?.errors?.['min']">Minimum 1 billet.</span>
+                  <span class="error-text" *ngIf="form.get('numberOfTickets')?.errors?.['max']">Maximum {{ maxTickets }} billet(s).</span>
+                </div>
+
+                <!-- Promo code -->
+                <div class="field" *ngIf="event!.type === 'paid'">
+                  <label for="promoCode">Code promo</label>
+                  <div class="promo-row">
+                    <input id="promoCode" type="text" formControlName="promoCode"
+                      placeholder="Ex: SUMMER10" [disabled]="!!appliedPromo">
+                    <button type="button" class="btn btn-secondary btn-sm"
+                      (click)="applyPromoCode()"
+                      *ngIf="!appliedPromo"
+                      [disabled]="promoCheckLoading || !form.get('promoCode')?.value">
+                      {{ promoCheckLoading ? '…' : 'Appliquer' }}
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm"
+                      (click)="removePromoCode()" *ngIf="appliedPromo">Retirer</button>
+                  </div>
+                  <span class="error-text"   *ngIf="promoError">{{ promoError }}</span>
+                  <span class="helper-text success" *ngIf="appliedPromo">
+                    ✓ Réduction {{ appliedPromo.discountType === 'percentage'
+                      ? (appliedPromo.discountValue + '%')
+                      : (appliedPromo.discountValue + ' DT') }}
+                  </span>
+                </div>
+
+                <!-- Price summary -->
+                <div class="price-box" *ngIf="event!.type === 'paid'">
+                  <span>Total</span>
+                  <span class="price-amount">{{ totalPrice | number:'1.2-2' }} DT</span>
+                </div>
+
+                <div class="alert alert-error mt-12" *ngIf="reservationError">{{ reservationError }}</div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg"
+                  [disabled]="form.invalid || reserving">
+                  <span class="spinner" *ngIf="reserving"></span>
+                  <span class="material-icons" *ngIf="!reserving">confirmation_number</span>
+                  {{ reserving ? 'Réservation en cours…' : 'Réserver maintenant' }}
+                </button>
+
+                <p class="reservation-note">
+                  <span class="material-icons">mail</span>
+                  Billet PDF avec QR code envoyé par email.
+                </p>
+              </form>
+            </ng-container>
+
+            <!-- ── FULL (event full, no more spots) ──────────────────────── -->
+            <ng-container *ngIf="sidebarMode === 'full'">
+              <div class="wl-full-banner">
+                <div class="wl-full-icon">
+                  <span class="material-icons">event_busy</span>
+                </div>
+                <p class="wl-full-text">
+                  Toutes les places pour cet événement sont réservées.
+                </p>
+              </div>
+            </ng-container>
+
+          </div><!-- /reservation-card -->
+        </aside>
+      </div>
+    </div>
+
+    <!-- Lot 2 Features -->
+    <div class="detail-extras">
+      <app-similar-events [eventId]="event._id"></app-similar-events>
+      <app-event-reviews [eventId]="event._id" [canReview]="isEventPast && hasConfirmedReservation" [isEventPast]="isEventPast"></app-event-reviews>
+      <app-event-gallery [eventId]="event._id" [canUpload]="isOrganizer" [isEventPast]="isEventPast"></app-event-gallery>
+      <app-manage-certificates *ngIf="isOrganizer && isEventPast" [eventId]="event._id"></app-manage-certificates>
+    </div>
+  </ng-container>
+
+  <app-event-chat *ngIf="event && auth.isAuthenticated()" [eventId]="event._id"></app-event-chat>
+</div>
+

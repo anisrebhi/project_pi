@@ -1,0 +1,84 @@
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+  padding: var(--space-6);
+  animation: overlayIn var(--duration-base) var(--ease-out);
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.confirm-box {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-2xl);
+  padding: var(--space-8);
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  animation: boxIn var(--duration-slow) var(--ease-bounce);
+  border: 1px solid var(--color-line);
+}
+
+@keyframes boxIn {
+  from { opacity: 0; transform: scale(.92) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.confirm-icon-wrap {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-5);
+  border-radius: var(--radius-full);
+  background: var(--brand-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:host-context(.dark) .confirm-icon-wrap { background: rgba(99,102,241,.12); }
+
+.confirm-icon {
+  font-size: 32px !important;
+  color: var(--color-primary);
+}
+
+.confirm-icon-danger { color: var(--color-danger); }
+.confirm-icon-wrap:has(.confirm-icon-danger) { background: var(--color-danger-bg); }
+:host-context(.dark) .confirm-icon-wrap:has(.confirm-icon-danger) { background: rgba(239,68,68,.12); }
+
+.confirm-box h3 {
+  font-size: 1.15rem;
+  color: var(--color-ink);
+  margin-bottom: var(--space-2);
+}
+
+.confirm-box p {
+  color: var(--color-muted);
+  font-size: .875rem;
+  line-height: 1.6;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-muted);
+  border: 1.5px solid var(--color-line);
+}
+.btn-ghost:hover { background: var(--gray-50); color: var(--color-ink); border-color: var(--gray-300); }
+:host-context(.dark) .btn-ghost { border-color: var(--dark-line); color: var(--dark-muted); }
+:host-context(.dark) .btn-ghost:hover { background: var(--dark-surface-2); color: var(--dark-ink); }

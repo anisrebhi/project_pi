@@ -1,0 +1,61 @@
+/**
+ * @file utils/notificationService.js
+ * @description Centralised notification dispatcher.
+ * All automated emails (reservation confirmation, 24h reminder, event
+ * modification, event cancellation) are triggered here so controllers
+ * never import templates and sendMail directly.
+ */
+const { sendMail }  = require('./emailService');
+const {
+  buildReservationConfirmationEmail,
+  buildEventReminderEmail,
+  buildEventModifiedEmail,
+  buildEventCancelledEmail,
+} = require('./emailTemplates');
+
+/** Fire-and-forget helper: logs on failure, never throws. */
+const fire = async (label, mailPromise) => {
+  try {
+    const result = await mailPromise;
+    if (!result.sent) console.warn(`[Notify:${label}] Not sent — ${result.reason}`);
+    return result;
+  } catch (err) {
+    console.error(`[Notify:${label}] Error — ${err.message}`);
+    return { sent: false, reason: err.message };
+  }
+};
+
+// ─── Confirmation de réservation ──────────────────────────────────────────────
+
+const notifyReservationConfirmed = (reservation, event, user, qrCodeDataUrl) => {
+  const mail = buildReservationConfirmationEmail({ reservation, event, user, qrCodeDataUrl });
+  return fire('ReservationConfirmed', sendMail({ to: user.email, ...mail }));
+};
+
+// ─── Rappel 24 h avant l'événement ────────────────────────────────────────────
+
+const notifyEventReminder = (user, event, reservation) => {
+  const mail = buildEventReminderEmail({ user, event, reservation });
+  return fire('EventReminder', sendMail({ to: user.email, ...mail }));
+};
+
+// ─── Modification d'un événement ─────────────────────────────────────────────
+
+const notifyEventModified = (user, event, changes) => {
+  const mail = buildEventModifiedEmail({ user, event, changes });
+  return fire('EventModified', sendMail({ to: user.email, ...mail }));
+};
+
+// ─── Annulation d'un événement ────────────────────────────────────────────────
+
+const notifyEventCancelled = (user, event) => {
+  const mail = buildEventCancelledEmail({ user, event });
+  return fire('EventCancelled', sendMail({ to: user.email, ...mail }));
+};
+
+module.exports = {
+  notifyReservationConfirmed,
+  notifyEventReminder,
+  notifyEventModified,
+  notifyEventCancelled,
+};

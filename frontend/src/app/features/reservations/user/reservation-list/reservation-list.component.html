@@ -1,0 +1,85 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">Mon espace</span>
+      <h1>Mes réservations</h1>
+      <p class="subtitle">Retrouvez l'historique de vos réservations et téléchargez vos billets.</p>
+    </div>
+    <a routerLink="/events" class="btn btn-primary">
+      <span class="material-icons">explore</span>
+      Découvrir des événements
+    </a>
+  </div>
+
+  <form [formGroup]="filters" class="filters-bar">
+    <div class="field" style="margin-bottom: 0;">
+      <label for="status">Statut</label>
+      <select id="status" formControlName="status">
+        <option value="">Tous les statuts</option>
+        <option value="confirmed">Confirmée</option>
+        <option value="pending">En attente</option>
+        <option value="cancelled">Annulée</option>
+      </select>
+    </div>
+  </form>
+
+  <div class="alert alert-error mt-16" *ngIf="errorMessage">
+    <span class="material-icons">error_outline</span>
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <div class="spinner-center" *ngIf="loading">
+    <span class="spinner spinner-lg"></span>
+  </div>
+
+  <ng-container *ngIf="!loading && !errorMessage">
+    <div class="grid grid-2 mt-6 stagger" *ngIf="reservations.length > 0; else empty">
+      <a class="reservation-card" *ngFor="let reservation of reservations" [routerLink]="['/my-reservations', reservation._id]">
+        <div class="reservation-card-top">
+          <span class="category-chip">{{ getCategoryEmoji(asEvent(reservation).category) }} {{ getCategoryLabel(asEvent(reservation).category) }}</span>
+          <app-status-badge [status]="reservation.status"></app-status-badge>
+        </div>
+        <h3 class="reservation-card-title">{{ asEvent(reservation).title }}</h3>
+        <div class="reservation-card-date">
+          <span class="material-icons">calendar_today</span>
+          <span>{{ asEvent(reservation).startDate | date: 'EEEE d MMMM yyyy à HH:mm' }}</span>
+        </div>
+        <div class="reservation-card-footer">
+          <span class="reservation-card-meta">
+            <span class="material-icons">confirmation_number</span>
+            {{ reservation.numberOfTickets }} billet(s)
+          </span>
+          <span class="reservation-card-price">{{ reservation.totalPrice }} DT</span>
+        </div>
+        <div class="reservation-card-action">
+          <span>Détails</span>
+          <span class="material-icons">arrow_forward</span>
+        </div>
+      </a>
+    </div>
+
+    <ng-template #empty>
+      <div class="state-block mt-16">
+        <span class="state-icon">🎟️</span>
+        <h3>Aucune réservation pour le moment</h3>
+        <p>Parcourez le catalogue d'événements pour effectuer votre première réservation.</p>
+        <a routerLink="/events" class="btn btn-primary mt-16">Voir les événements</a>
+      </div>
+    </ng-template>
+
+    <div class="flex-between mt-8" *ngIf="pagination && pagination.totalPages > 1">
+      <span class="text-sm muted">
+        Page {{ pagination.currentPage }} / {{ pagination.totalPages }} — {{ pagination.total }} réservation(s)
+      </span>
+      <div class="pagination">
+        <button class="page-btn" [disabled]="!pagination.hasPrevPage" (click)="goToPage(page - 1)">
+          <span class="material-icons">chevron_left</span>
+        </button>
+        <span class="page-info">{{ pagination.currentPage }}</span>
+        <button class="page-btn" [disabled]="!pagination.hasNextPage" (click)="goToPage(page + 1)">
+          <span class="material-icons">chevron_right</span>
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</div>

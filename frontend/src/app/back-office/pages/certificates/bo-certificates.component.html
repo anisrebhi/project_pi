@@ -1,0 +1,542 @@
+<div class="bo-page">
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       EN-TÊTE
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="bo-page-header">
+    <div class="bo-page-header-left">
+      <div class="bo-page-badge">
+        <span class="material-icons">workspace_premium</span>
+      </div>
+      <div>
+        <h1>Gestion des Certificats</h1>
+        <p class="muted text-sm">Validez, envoyez et suivez les certificats de participation.</p>
+      </div>
+    </div>
+
+    <!-- Boutons contextuels selon la vue -->
+    <div class="flex gap-2 items-center" *ngIf="selectedEventId">
+      <button *ngIf="viewMode() === 'certs'"
+              class="btn btn-outline btn-sm"
+              (click)="loadCerts()" [disabled]="loading()" title="Rafraîchir les certificats">
+        <span class="material-icons" [class.spinning]="loading()">refresh</span>
+      </button>
+      <button *ngIf="viewMode() === 'participants'"
+              class="btn btn-outline btn-sm"
+              (click)="loadParticipants()" [disabled]="loadingParts()" title="Rafraîchir les participants">
+        <span class="material-icons" [class.spinning]="loadingParts()">refresh</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       FEEDBACKS (Toast / Erreur)
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <div *ngIf="toast()" class="alert animate-fade"
+       [ngClass]="{'alert-success':toast()!.type==='success','alert-info':toast()!.type==='info','alert-error':toast()!.type==='error'}">
+    <span class="material-icons">{{ toast()!.type==='success' ? 'check_circle' : toast()!.type==='info' ? 'info' : 'error_outline' }}</span>
+    <span>{{ toast()!.msg }}</span>
+  </div>
+
+  <div *ngIf="errMsg()" class="alert alert-error animate-fade">
+    <span class="material-icons">error_outline</span>
+    <span style="white-space:pre-line">{{ errMsg() }}</span>
+  </div>
+
+  <!-- Erreur chargement événements -->
+  <div *ngIf="eventsError()" class="events-error-banner animate-fade">
+    <span class="material-icons">cloud_off</span>
+    <div class="events-error-body">
+      <strong>Impossible de charger les événements</strong>
+      <p style="white-space:pre-line">{{ eventsError() }}</p>
+    </div>
+    <button class="btn btn-outline btn-sm" (click)="loadEvents()" [disabled]="loadingEvts()">
+      <span class="spinner spinner-sm" *ngIf="loadingEvts()"></span>
+      <span class="material-icons" *ngIf="!loadingEvts()">refresh</span>
+      Réessayer
+    </button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       BARRE DE SÉLECTION D'ÉVÉNEMENT
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="bo-filters-card">
+    <div class="bo-filters gap-3 flex-wrap">
+
+      <!-- Sélecteur événement -->
+      <div class="field mb-0" style="flex:1;min-width:240px;max-width:460px">
+        <label>Événement</label>
+        <select [(ngModel)]="selectedEventId"
+                (ngModelChange)="onEventChange()"
+                [disabled]="loadingEvts()">
+          <option value="">{{ loadingEvts() ? 'Chargement…' : '— Choisir un événement —' }}</option>
+          <option *ngFor="let e of events()" [value]="e._id">
+            {{ e.title }} ({{ e.startDate | date:'dd/MM/yyyy' }})
+          </option>
+        </select>
+        <span class="field-hint" *ngIf="events().length > 0">
+          {{ events().length }} événement(s) disponible(s)
+        </span>
+      </div>
+
+      <!-- Actions principales -->
+      <div class="flex gap-2 items-end flex-wrap" *ngIf="selectedEventId">
+
+        <!-- Bouton principal : voir les participants -->
+        <button class="btn btn-primary btn-sm"
+                (click)="showParticipants()"
+                [disabled]="loadingParts()"
+                [class.btn-active]="viewMode() === 'participants'"
+                title="Afficher les participants confirmés">
+          <span class="spinner spinner-sm" *ngIf="loadingParts()"></span>
+          <span class="material-icons" *ngIf="!loadingParts()">group</span>
+          Voir les participants
+        </button>
+
+        <!-- Retour aux certificats (si on est en mode participants) -->
+        <button *ngIf="viewMode() === 'participants'"
+                class="btn btn-outline btn-sm"
+                (click)="backToCerts()">
+          <span class="material-icons">workspace_premium</span>
+          Voir les certificats
+        </button>
+
+        <!-- Actions groupées sur certificats -->
+        <ng-container *ngIf="viewMode() === 'certs'">
+          <button *ngIf="hasPending()" class="btn btn-secondary btn-sm"
+                  (click)="bulkValidate()" [disabled]="bulkActing() !== null">
+            <span class="spinner spinner-sm" *ngIf="bulkActing()==='validate'"></span>
+            <span class="material-icons" *ngIf="bulkActing()!=='validate'">verified</span>
+            Valider tous
+          </button>
+          <button *ngIf="hasValidated()" class="btn btn-success btn-sm"
+                  (click)="bulkSend()" [disabled]="bulkActing() !== null">
+            <span class="spinner spinner-sm" *ngIf="bulkActing()==='send'"></span>
+            <span class="material-icons" *ngIf="bulkActing()!=='send'">send</span>
+            Envoyer tous
+          </button>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Info événement -->
+    <div class="event-info-bar" *ngIf="selectedEvent()">
+      <span class="material-icons" style="font-size:14px">event</span>
+      <span class="text-xs muted">
+        <strong>{{ selectedEvent().title }}</strong>
+        — du {{ selectedEvent().startDate | date:'dd/MM/yyyy' }}
+        au {{ selectedEvent().endDate | date:'dd/MM/yyyy' }}
+        <ng-container *ngIf="!isEventFinished()">
+          &nbsp;<span class="badge-status badge-live">En cours / à venir</span>
+        </ng-container>
+        <ng-container *ngIf="isEventFinished()">
+          &nbsp;<span class="badge-status badge-done">Terminé</span>
+        </ng-container>
+      </span>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       VUE ① : PARTICIPANTS CONFIRMÉS
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="viewMode() === 'participants'">
+
+    <!-- Stats participants -->
+    <div class="parts-stats-row" *ngIf="partsStats() && !loadingParts()">
+      <div class="part-stat-card">
+        <span class="material-icons part-stat-icon">group</span>
+        <div>
+          <div class="cstat-value">{{ partsStats()!.total }}</div>
+          <div class="cstat-label">Participants confirmés</div>
+        </div>
+      </div>
+      <div class="part-stat-card">
+        <span class="material-icons part-stat-icon" style="color:#059669">workspace_premium</span>
+        <div>
+          <div class="cstat-value" style="color:#059669">{{ partsStats()!.withCert }}</div>
+          <div class="cstat-label">Avec certificat</div>
+        </div>
+      </div>
+      <div class="part-stat-card">
+        <span class="material-icons part-stat-icon" style="color:#d97706">pending</span>
+        <div>
+          <div class="cstat-value" style="color:#d97706">{{ partsStats()!.withoutCert }}</div>
+          <div class="cstat-label">Sans certificat</div>
+        </div>
+      </div>
+      <div class="part-stat-card" *ngIf="selectedCount() > 0">
+        <span class="material-icons part-stat-icon" style="color:#6366f1">check_box</span>
+        <div>
+          <div class="cstat-value" style="color:#6366f1">{{ selectedCount() }}</div>
+          <div class="cstat-label">Sélectionné(s)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barre d'actions participants -->
+    <div class="parts-action-bar" *ngIf="participants().length > 0 && !loadingParts()">
+
+      <!-- Recherche -->
+      <div class="input-icon-wrap" style="flex:1;min-width:200px">
+        <span class="material-icons input-icon">search</span>
+        <input type="text" [(ngModel)]="searchParts"
+               placeholder="Rechercher un participant…"
+               class="input-with-icon"/>
+      </div>
+
+      <!-- Sélection rapide -->
+      <div class="flex gap-2 items-center">
+        <button class="btn btn-ghost btn-sm" (click)="selectAll()">
+          <span class="material-icons">select_all</span> Tout sélectionner
+        </button>
+        <button class="btn btn-ghost btn-sm" (click)="deselectAll()" *ngIf="selectedCount() > 0">
+          <span class="material-icons">deselect</span> Désélectionner
+        </button>
+      </div>
+
+      <!-- Bouton Initialiser -->
+      <div class="init-group">
+        <button class="btn btn-primary"
+                (click)="initialize()"
+                [disabled]="initializing() || selectedCount() === 0">
+          <span class="spinner spinner-sm" *ngIf="initializing()"></span>
+          <span class="material-icons" *ngIf="!initializing()">add_task</span>
+          Initialiser {{ selectedCount() > 0 ? '(' + selectedCount() + ')' : '' }}
+        </button>
+        <label class="force-label"
+               title="Initialiser même si l'événement n'est pas encore terminé">
+          <input type="checkbox" [(ngModel)]="forceInit"/>
+          <span>Forcer</span>
+        </label>
+      </div>
+
+    </div>
+
+    <!-- Chargement participants -->
+    <div class="loading-state" *ngIf="loadingParts()">
+      <div class="spinner spinner-lg spinner-dark"></div>
+      <p class="muted text-sm mt-3">Chargement des participants…</p>
+    </div>
+
+    <!-- Erreur participants -->
+    <div class="empty-block" *ngIf="partsError() && !loadingParts()">
+      <div class="empty-icon-wrap" style="background:rgba(245,158,11,.08)">
+        <span class="material-icons" style="color:#d97706">person_off</span>
+      </div>
+      <h3>{{ partsError() }}</h3>
+      <p>Seuls les participants ayant une réservation confirmée peuvent recevoir un certificat.</p>
+      <button class="btn btn-outline btn-sm mt-4" (click)="loadParticipants()">
+        <span class="material-icons">refresh</span> Réessayer
+      </button>
+    </div>
+
+    <!-- Tableau participants -->
+    <div class="bo-table-card" *ngIf="!loadingParts() && filteredParticipants().length > 0">
+      <div class="table-meta">
+        <span class="table-count">
+          {{ filteredParticipants().length }} participant(s)
+          <span *ngIf="selectedCount() > 0" class="sel-count-badge">
+            {{ selectedCount() }} sélectionné(s)
+          </span>
+        </span>
+        <span class="text-xs muted">
+          Cochez les participants qui recevront un certificat
+        </span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:44px">
+                <input type="checkbox"
+                       class="check-all"
+                       [checked]="allSelected()"
+                       [indeterminate]="selectedCount() > 0 && !allSelected()"
+                       (change)="toggleAll()"
+                       title="Tout sélectionner / Désélectionner"/>
+              </th>
+              <th>Participant</th>
+              <th>Email</th>
+              <th>Réservé le</th>
+              <th>Type</th>
+              <th>Statut certificat</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of filteredParticipants(); trackBy: trackById"
+                [class.row-has-cert]="p.hasCertificate"
+                [class.row-selected]="isSelected(p.userId) && !p.hasCertificate">
+
+              <td>
+                <input type="checkbox"
+                       [checked]="isSelected(p.userId)"
+                       [disabled]="p.hasCertificate"
+                       (change)="toggleUser(p.userId)"
+                       [title]="p.hasCertificate ? 'Certificat déjà créé' : 'Sélectionner'"/>
+              </td>
+
+              <!-- Participant info -->
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="bo-avatar" [class.bo-avatar-done]="p.hasCertificate">
+                    {{ partInitial(p) }}
+                  </div>
+                  <span class="font-semibold text-sm">{{ p.fullName }}</span>
+                </div>
+              </td>
+
+              <td class="cell-muted text-sm">{{ p.email }}</td>
+
+              <td class="cell-muted text-sm">
+                {{ p.reservedAt | date:'dd/MM/yyyy' }}
+              </td>
+
+              <td class="text-sm">
+                <span class="ticket-badge" *ngIf="p.ticketType">{{ p.ticketType }}</span>
+                <span class="muted text-xs" *ngIf="!p.ticketType">Standard</span>
+              </td>
+
+              <td>
+                <!-- Déjà un certificat -->
+                <span *ngIf="p.hasCertificate"
+                      class="cert-status-badge cert-status-{{ p.certStatus }}">
+                  <span class="material-icons status-ico">{{ statusIcon(p.certStatus || '') }}</span>
+                  {{ statusLabel(p.certStatus || '') }}
+                </span>
+                <!-- Pas encore de certificat -->
+                <span *ngIf="!p.hasCertificate" class="cert-status-badge cert-no-cert">
+                  <span class="material-icons status-ico">radio_button_unchecked</span>
+                  Aucun
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer du tableau -->
+      <div class="table-footer" *ngIf="partsStats()!.withoutCert === 0">
+        <span class="material-icons" style="color:#059669;font-size:18px">check_circle</span>
+        <span class="text-sm" style="color:#059669">
+          Tous les participants ont déjà un certificat.
+        </span>
+      </div>
+    </div>
+
+    <!-- Aucun résultat filtres -->
+    <div class="alert alert-warning"
+         *ngIf="!loadingParts() && participants().length > 0 && filteredParticipants().length === 0">
+      <span class="material-icons">search_off</span>
+      Aucun participant ne correspond à la recherche.
+    </div>
+
+  </ng-container>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       VUE ② : CERTIFICATS
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="viewMode() === 'certs'">
+
+    <!-- Stats certificats -->
+    <div class="cert-stats-row" *ngIf="stats() && selectedEventId">
+      <div class="cert-stat-card">
+        <div class="cert-stat-icon-wrap cert-icon-total"><span class="material-icons">description</span></div>
+        <div class="cert-stat-body"><span class="cstat-value">{{ stats()!.total }}</span><span class="cstat-label">Total</span></div>
+      </div>
+      <div class="cert-stat-card">
+        <div class="cert-stat-icon-wrap cert-icon-pending"><span class="material-icons">hourglass_empty</span></div>
+        <div class="cert-stat-body"><span class="cstat-value pending-val">{{ stats()!.pending }}</span><span class="cstat-label">En attente</span></div>
+      </div>
+      <div class="cert-stat-card">
+        <div class="cert-stat-icon-wrap cert-icon-validated"><span class="material-icons">verified</span></div>
+        <div class="cert-stat-body"><span class="cstat-value validated-val">{{ stats()!.validated }}</span><span class="cstat-label">Validés</span></div>
+      </div>
+      <div class="cert-stat-card">
+        <div class="cert-stat-icon-wrap cert-icon-sent"><span class="material-icons">mark_email_read</span></div>
+        <div class="cert-stat-body"><span class="cstat-value sent-val">{{ stats()!.sent }}</span><span class="cstat-label">Envoyés</span></div>
+      </div>
+      <div class="cert-stat-card">
+        <div class="cert-stat-icon-wrap cert-icon-downloaded"><span class="material-icons">download_done</span></div>
+        <div class="cert-stat-body"><span class="cstat-value downloaded-val">{{ stats()!.downloaded }}</span><span class="cstat-label">Téléchargés</span></div>
+      </div>
+    </div>
+
+    <!-- Filtres certificats -->
+    <div class="certs-filter-bar" *ngIf="certs().length > 0">
+      <div class="input-icon-wrap" style="flex:1;min-width:200px">
+        <span class="material-icons input-icon">search</span>
+        <input type="text" [(ngModel)]="searchCerts"
+               placeholder="Rechercher un participant…"
+               class="input-with-icon"/>
+      </div>
+      <div class="field mb-0" style="min-width:150px">
+        <select [(ngModel)]="statusFilter">
+          <option value="">Tous les statuts</option>
+          <option value="pending">En attente</option>
+          <option value="validated">Validés</option>
+          <option value="sent">Envoyés</option>
+          <option value="downloaded">Téléchargés</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Chargement certificats -->
+    <div class="loading-state" *ngIf="loading()">
+      <div class="spinner spinner-lg spinner-dark"></div>
+      <p class="muted text-sm mt-3">Chargement des certificats…</p>
+    </div>
+
+    <!-- Aucun événement sélectionné -->
+    <div class="alert alert-info" *ngIf="!loading() && !selectedEventId && events().length > 0">
+      <span class="material-icons">info</span>
+      Sélectionnez un événement, puis cliquez sur <strong>Voir les participants</strong>
+      pour créer les certificats.
+    </div>
+
+    <!-- Aucun certificat -->
+    <div class="empty-block" *ngIf="!loading() && selectedEventId && certs().length === 0">
+      <div class="empty-icon-wrap"><span class="material-icons">workspace_premium</span></div>
+      <h3>Aucun certificat pour cet événement</h3>
+      <p>
+        Cliquez sur <strong>Voir les participants</strong> pour afficher
+        les participants confirmés et initialiser leurs certificats.
+        <ng-container *ngIf="!isEventFinished()">
+          <br>L'événement n'est pas encore terminé — cochez <strong>Forcer</strong>.
+        </ng-container>
+      </p>
+      <button class="btn btn-primary mt-4" (click)="showParticipants()">
+        <span class="material-icons">group</span>
+        Voir les participants
+      </button>
+    </div>
+
+    <!-- Aucun résultat filtres -->
+    <div class="alert alert-warning"
+         *ngIf="!loading() && selectedEventId && certs().length > 0 && filteredCerts().length === 0">
+      <span class="material-icons">search_off</span>
+      Aucun résultat pour ces filtres.
+    </div>
+
+    <!-- Tableau certificats -->
+    <div class="bo-table-card" *ngIf="!loading() && filteredCerts().length > 0">
+      <div class="table-meta">
+        <span class="table-count">{{ filteredCerts().length }} / {{ certs().length }} certificat(s)</span>
+        <button class="btn btn-ghost btn-sm" (click)="showParticipants()">
+          <span class="material-icons">group_add</span>
+          Ajouter des participants
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Participant</th>
+              <th>Statut</th>
+              <th>Code vérification</th>
+              <th>Émis le</th>
+              <th>Dernière action</th>
+              <th class="text-center">DL</th>
+              <th style="min-width:300px">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let cert of filteredCerts(); trackBy: trackById"
+                [class.row-acting]="isActing(cert) || isDeleting(cert)">
+
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="bo-avatar">{{ certInitial(cert) }}</div>
+                  <div>
+                    <div class="font-semibold text-sm">{{ certName(cert) }}</div>
+                    <div class="text-xs muted">{{ certEmail(cert) }}</div>
+                  </div>
+                </div>
+              </td>
+
+              <td>
+                <span class="cert-status-badge cert-status-{{ cert.status }}">
+                  <span class="material-icons status-ico">{{ statusIcon(cert.status) }}</span>
+                  {{ statusLabel(cert.status) }}
+                </span>
+              </td>
+
+              <td>
+                <code class="cert-code-display" [title]="cert.verificationCode">
+                  {{ cert.verificationCode | slice:0:12 }}…
+                </code>
+              </td>
+
+              <td class="cell-muted">{{ cert.issuedAt | date:'dd/MM/yyyy' }}</td>
+              <td class="cell-muted">{{ lastDate(cert) }}</td>
+
+              <td class="text-center">
+                <span class="dl-badge" *ngIf="cert.downloadCount">{{ cert.downloadCount }}</span>
+                <span class="muted text-xs" *ngIf="!cert.downloadCount">—</span>
+              </td>
+
+              <td>
+                <div class="actions-cell">
+                  <!-- ① Valider -->
+                  <button *ngIf="cert.status === 'pending'" class="btn btn-primary btn-sm"
+                          (click)="validate(cert)" [disabled]="isActing(cert)" title="Valider">
+                    <span class="spinner spinner-sm" *ngIf="isActing(cert)"></span>
+                    <span class="material-icons" *ngIf="!isActing(cert)">verified</span>
+                    Valider
+                  </button>
+
+                  <!-- ② Envoyer -->
+                  <button *ngIf="cert.status === 'validated'" class="btn btn-success btn-sm"
+                          (click)="send(cert)" [disabled]="isActing(cert)" title="Envoyer par email">
+                    <span class="spinner spinner-sm" *ngIf="isActing(cert)"></span>
+                    <span class="material-icons" *ngIf="!isActing(cert)">send</span>
+                    Envoyer
+                  </button>
+
+                  <!-- ③ Renvoyer -->
+                  <button *ngIf="cert.status === 'sent' || cert.status === 'downloaded'"
+                          class="btn btn-outline btn-sm"
+                          (click)="send(cert)" [disabled]="isActing(cert)" title="Renvoyer">
+                    <span class="spinner spinner-sm" *ngIf="isActing(cert)"></span>
+                    <span class="material-icons" *ngIf="!isActing(cert)">forward_to_inbox</span>
+                    Renvoyer
+                  </button>
+
+                  <!-- ④ Aperçu -->
+                  <button *ngIf="cert.status !== 'pending'" class="btn btn-ghost btn-sm"
+                          (click)="preview(cert)"
+                          [disabled]="acting() === cert._id + '_preview'" title="Aperçu PDF">
+                    <span class="spinner spinner-sm" *ngIf="acting() === cert._id + '_preview'"></span>
+                    <span class="material-icons" *ngIf="acting() !== cert._id + '_preview'">preview</span>
+                  </button>
+
+                  <!-- ⑤ Télécharger -->
+                  <button *ngIf="cert.status !== 'pending'" class="btn btn-secondary btn-sm"
+                          (click)="download(cert)" [disabled]="isActing(cert)" title="Télécharger PDF">
+                    <span class="spinner spinner-sm" *ngIf="isActing(cert)"></span>
+                    <span class="material-icons" *ngIf="!isActing(cert)">download</span>
+                  </button>
+
+                  <!-- ⑥ Vérifier -->
+                  <a *ngIf="cert.status !== 'pending'"
+                     [routerLink]="['/verify-certificate', cert.verificationCode]"
+                     target="_blank" class="btn btn-ghost btn-sm" title="Vérifier authenticité">
+                    <span class="material-icons">qr_code_scanner</span>
+                  </a>
+
+                  <!-- ⑦ Supprimer -->
+                  <button class="btn btn-danger btn-sm btn-icon-only"
+                          (click)="confirmDelete(cert)" [disabled]="isDeleting(cert)" title="Supprimer">
+                    <span class="spinner spinner-sm" *ngIf="isDeleting(cert)"></span>
+                    <span class="material-icons" *ngIf="!isDeleting(cert)">delete_outline</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </ng-container>
+
+</div>

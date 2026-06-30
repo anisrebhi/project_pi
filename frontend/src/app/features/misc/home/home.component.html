@@ -1,0 +1,130 @@
+<div class="home-page">
+  <section class="hero-section">
+    <div class="hero-bg-shapes">
+      <div class="hero-shape hero-shape-1"></div>
+      <div class="hero-shape hero-shape-2"></div>
+      <div class="hero-shape hero-shape-3"></div>
+    </div>
+
+    <div class="hero-content">
+      <div class="hero-badge">Plateforme de gestion d'événements</div>
+      <h1 class="hero-title">
+        Découvrez & réservez<br>
+        <span class="hero-gradient">des événements inoubliables</span>
+      </h1>
+      <p class="hero-description">
+        Conférences, ateliers, rencontres sportives — trouvez et réservez en quelques clics.<br>
+        Votre billet QR code instantané, livré par email.
+      </p>
+
+      <div class="hero-actions">
+        <ng-container *ngIf="auth.isAuthenticated(); else guestActions">
+          <a routerLink="/events" class="btn btn-primary btn-lg">
+            <span class="material-icons">explore</span>
+            Découvrir les événements
+          </a>
+          <a *ngIf="!isStaff" routerLink="/my-reservations" class="btn btn-secondary btn-lg">
+            <span class="material-icons">confirmation_number</span>
+            Mes réservations
+          </a>
+          <a *ngIf="isStaff" routerLink="/backoffice" class="btn btn-secondary btn-lg">
+            <span class="material-icons">admin_panel_settings</span>
+            Back Office
+          </a>
+        </ng-container>
+        <ng-template #guestActions>
+          <a routerLink="/register" class="btn btn-primary btn-lg">
+            <span class="material-icons">person_add</span>
+            Créer un compte gratuit
+          </a>
+          <a routerLink="/login" class="btn btn-ghost btn-lg">
+            <span class="material-icons">login</span>
+            Se connecter
+          </a>
+        </ng-template>
+      </div>
+
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-icon material-icons">flash_on</span>
+          <div class="hero-stat-info">
+            <span class="hero-stat-value">100% en ligne</span>
+            <span class="hero-stat-label">Réservation instantanée</span>
+          </div>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-icon material-icons">qr_code_scanner</span>
+          <div class="hero-stat-info">
+            <span class="hero-stat-value">Billet QR</span>
+            <span class="hero-stat-label">Numérique & sécurisé</span>
+          </div>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-icon material-icons">picture_as_pdf</span>
+          <div class="hero-stat-info">
+            <span class="hero-stat-value">PDF</span>
+            <span class="hero-stat-label">Téléchargeable</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features-section">
+    <div class="section-label">Pourquoi EventPass ?</div>
+    <h2 class="section-title">Tout ce dont vous avez besoin</h2>
+    <p class="section-subtitle">Une plateforme complète pour gérer vos événements de bout en bout.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-card-icon" style="background:linear-gradient(135deg,#818cf8,#6366f1)">
+          <span class="material-icons">confirmation_number</span>
+        </div>
+        <h3>Réservation instantanée</h3>
+        <p>Réservez en quelques secondes et recevez votre QR code par email immédiatement.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-icon" style="background:linear-gradient(135deg,#34d399,#10b981)">
+          <span class="material-icons">map</span>
+        </div>
+        <h3>Événements géolocalisés</h3>
+        <p>Retrouvez chaque événement sur la carte interactive pour vous orienter facilement.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-icon" style="background:linear-gradient(135deg,#f472b6,#ec4899)">
+          <span class="material-icons">workspace_premium</span>
+        </div>
+        <h3>Certificats premium</h3>
+        <p>Recevez des certificats de participation élégants pour chaque événement complété.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-icon" style="background:linear-gradient(135deg,#fb923c,#f97316)">
+          <span class="material-icons">chat</span>
+        </div>
+        <h3>Chat en direct</h3>
+        <p>Échangez avec les organisateurs et participants pendant vos événements.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-icon" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6)">
+          <span class="material-icons">rate_review</span>
+        </div>
+        <h3>Avis & notations</h3>
+        <p>Partagez votre expérience et lisez les avis des autres participants.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-icon" style="background:linear-gradient(135deg,#60a5fa,#3b82f6)">
+          <span class="material-icons">admin_panel_settings</span>
+        </div>
+        <h3>Back Office puissant</h3>
+        <p>Tableau de bord, gestion des participants, statistiques et bien plus.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recommendations -->
+  <div class="home-reco-wrapper">
+    <app-recommended-events></app-recommended-events>
+  </div>
+</div>

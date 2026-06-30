@@ -1,0 +1,44 @@
+<section class="reco-section" *ngIf="auth.isAuthenticated() && events().length > 0">
+  <div class="reco-header">
+    <div class="reco-header-top">
+      <h2>Événements recommandés pour vous</h2>
+      <span class="reco-sparkle material-icons">auto_awesome</span>
+    </div>
+    <p *ngIf="basedOn().length > 0" class="reco-basis">
+      Basé sur vos intérêts : <span *ngFor="let cat of basedOn(); let last=last" class="cat-pill">{{ cat }}<span *ngIf="!last">, </span></span>
+    </p>
+  </div>
+  <div class="reco-grid">
+    <a *ngFor="let event of events()" [routerLink]="['/events', event._id]" class="reco-card">
+      <div class="reco-card-img">
+        <img *ngIf="event.images?.[0]" [src]="event.images[0]" [alt]="event.title" loading="lazy" />
+        <div *ngIf="!event.images?.[0]" class="reco-card-img-placeholder">
+          <span class="material-icons">event</span>
+        </div>
+        <span class="reco-badge" *ngIf="event.type === 'free' || event.price === 0">Gratuit</span>
+      </div>
+      <div class="reco-card-body">
+        <span class="reco-category">{{ event.category }}</span>
+        <h3 class="reco-title">{{ event.title }}</h3>
+        <div class="reco-meta">
+          <span class="reco-meta-item">
+            <span class="material-icons">event</span>
+            {{ event.startDate | date:'dd MMM yyyy' }}
+          </span>
+          <span class="reco-meta-item" *ngIf="event.location?.address">
+            <span class="material-icons">place</span>
+            {{ event.location.address }}
+          </span>
+        </div>
+        <div class="reco-footer">
+          <span class="reco-price" *ngIf="event.price > 0">{{ event.price }} DT</span>
+          <span class="reco-price free" *ngIf="!event.price">Gratuit</span>
+          <span class="reco-spots" *ngIf="event.capacity">
+            <span class="material-icons">confirmation_number</span>
+            {{ event.capacity - (event.participants?.length || 0) }} places
+          </span>
+        </div>
+      </div>
+    </a>
+  </div>
+</section>

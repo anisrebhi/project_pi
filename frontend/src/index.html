@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>EventPass — Plateforme de gestion d'événements</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="description" content="EventPass - Réservez et gérez vos événements en ligne">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Material+Icons&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    body { margin: 0; font-family: 'Inter', system-ui, sans-serif; }
+    .app-loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f0f2ff; }
+    .app-loading-inner { text-align: center; }
+    .app-loading-logo { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg,#6366f1,#818cf8); color: #fff; font-weight: 900; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-family: 'Sora', sans-serif; }
+    .app-loading-bar { width: 120px; height: 3px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin: 0 auto; }
+    .app-loading-bar-inner { height: 100%; width: 40%; background: linear-gradient(90deg,#6366f1,#818cf8); border-radius: 4px; animation: loadingSlide 1s ease-in-out infinite; }
+    @keyframes loadingSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
+  </style>
+</head>
+<body>
+  <app-root>
+    <div class="app-loading">
+      <div class="app-loading-inner">
+        <div class="app-loading-logo">EP</div>
+        <div class="app-loading-bar"><div class="app-loading-bar-inner"></div></div>
+      </div>
+    </div>
+  </app-root>
+</body>
+</html>

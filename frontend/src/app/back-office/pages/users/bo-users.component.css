@@ -1,0 +1,123 @@
+:host {
+  display: block;
+  padding: var(--space-8);
+}
+
+.bo-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.bo-page-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.bo-page-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--color-primary), var(--brand-400));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: var(--shadow-brand);
+  flex-shrink: 0;
+}
+
+.bo-page-header h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-ink);
+  margin-bottom: 4px;
+}
+
+.bo-filters-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-line);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+
+.bo-filters {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.bo-table-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-line);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.bo-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  font-size: .85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.role-select {
+  border: 1.5px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  padding: .35rem .7rem;
+  font-size: .8rem;
+  cursor: pointer;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  min-width: 130px;
+}
+
+.role-select:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, .12);
+}
+
+.empty-cell {
+  padding: 2rem !important;
+}
+
+:host-context(.dark) .bo-filters-card {
+  background: var(--dark-surface);
+  border-color: var(--dark-line);
+}
+
+:host-context(.dark) .bo-table-card {
+  background: var(--dark-surface);
+  border-color: var(--dark-line);
+}
+
+:host-context(.dark) .role-select {
+  background: var(--dark-surface-2);
+  border-color: var(--dark-line);
+  color: var(--dark-ink);
+}
+
+@media (max-width: 768px) {
+  :host {
+    padding: var(--space-4);
+  }
+  .bo-page-header {
+    flex-direction: column;
+  }
+}

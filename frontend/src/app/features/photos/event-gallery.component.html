@@ -1,0 +1,72 @@
+<div class="gallery-section">
+  <div class="gallery-header">
+    <h2>Galerie Photos</h2>
+    <span class="photo-count" *ngIf="photos().length > 0">{{ photos().length }} photo(s)</span>
+  </div>
+
+  <div class="upload-zone" *ngIf="canUpload && isEventPast">
+    <label class="upload-label" [class.dragging]="dragging">
+      <input type="file" multiple accept="image/*" (change)="onFilePick($event)" hidden />
+      <div class="upload-inner" (dragover)="dragging=true" (dragleave)="dragging=false" (drop)="onDrop($event)">
+        <span class="upload-icon material-icons">cloud_upload</span>
+        <p>Glissez des photos ici ou <strong>cliquez pour choisir</strong></p>
+        <small>JPEG, PNG, WEBP — max 8 Mo par photo</small>
+      </div>
+    </label>
+    <div *ngIf="pendingFiles().length > 0" class="pending-preview">
+      <p><strong>{{ pendingFiles().length }} fichier(s) sélectionné(s)</strong></p>
+      <input type="text" [(ngModel)]="caption" placeholder="Légende (optionnelle)" class="caption-input" />
+      <div class="pending-actions">
+        <button class="btn btn-primary" (click)="uploadFiles()" [disabled]="uploading()">
+          {{ uploading() ? 'Envoi…' : 'Envoyer' }}
+        </button>
+        <button class="btn btn-secondary" (click)="clearPending()">Annuler</button>
+      </div>
+    </div>
+    <p class="upload-error" *ngIf="uploadError()">{{ uploadError() }}</p>
+  </div>
+
+  <div *ngIf="loading()" class="loading-gallery">
+    <div class="spinner"></div>Chargement de la galerie…
+  </div>
+
+  <div *ngIf="!loading() && photos().length === 0" class="empty-gallery">
+    <span class="empty-gallery-icon material-icons">photo_library</span>
+    <p>Aucune photo pour le moment.</p>
+    <small *ngIf="canUpload && isEventPast">Ajoutez les souvenirs de l'événement !</small>
+  </div>
+
+  <div class="photo-grid" *ngIf="!loading() && photos().length > 0">
+    <div *ngFor="let photo of photos(); let i = index" class="photo-tile" (click)="openLightbox(i)">
+      <img [src]="photoUrl(photo.url)" [alt]="photo.caption || photo.originalName" loading="lazy" />
+      <div class="photo-overlay">
+        <span class="material-icons zoom-icon">zoom_in</span>
+        <p *ngIf="photo.caption" class="tile-caption">{{ photo.caption }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="lightbox" *ngIf="lightboxIndex() !== null" (click)="closeLightbox()">
+    <div class="lightbox-inner" (click)="$event.stopPropagation()">
+      <button class="lb-nav lb-prev" (click)="prevPhoto()">
+        <span class="material-icons">chevron_left</span>
+      </button>
+      <div class="lb-image-wrap">
+        <img [src]="photoUrl(photos()[lightboxIndex()!].url)" [alt]="photos()[lightboxIndex()!].caption || ''" />
+        <div class="lb-info">
+          <p *ngIf="photos()[lightboxIndex()!].caption">{{ photos()[lightboxIndex()!].caption }}</p>
+          <span>{{ lightboxIndex()! + 1 }} / {{ photos().length }}</span>
+        </div>
+      </div>
+      <button class="lb-nav lb-next" (click)="nextPhoto()">
+        <span class="material-icons">chevron_right</span>
+      </button>
+      <button class="lb-close" (click)="closeLightbox()">
+        <span class="material-icons">close</span>
+      </button>
+      <button *ngIf="canUpload" class="lb-delete" (click)="deletePhoto(photos()[lightboxIndex()!]._id)">
+        <span class="material-icons">delete</span>
+      </button>
+    </div>
+  </div>
+</div>

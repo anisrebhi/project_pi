@@ -1,0 +1,206 @@
+<div class="bo-page">
+
+  <!-- Page header -->
+  <div class="bo-page-header">
+    <div class="bo-page-header-left">
+      <div class="bo-page-badge">
+        <span class="material-icons">people</span>
+      </div>
+      <div>
+        <h1>Participants</h1>
+        <p class="muted text-sm">Gérez les participants et générez leurs certificats.</p>
+      </div>
+    </div>
+    <span class="badge badge-neutral">
+      <span class="material-icons">group</span> {{ total() }} participant(s)
+    </span>
+  </div>
+
+  <!-- Toast -->
+  <div *ngIf="toast()" class="bo-toast bo-toast-{{ toast()!.type }} animate-fade">
+    <span class="material-icons">
+      {{ toast()!.type === 'success' ? 'check_circle' : toast()!.type === 'info' ? 'info' : 'error' }}
+    </span>
+    {{ toast()!.msg }}
+  </div>
+
+  <!-- Tabs -->
+  <div class="bo-tabs">
+    <button class="bo-tab" [class.bo-tab-active]="activeTab() === 'all'" (click)="activeTab.set('all')">
+      <span class="material-icons">people_outline</span> Tous les participants
+    </button>
+    <button class="bo-tab" [class.bo-tab-active]="activeTab() === 'event'" (click)="activeTab.set('event')">
+      <span class="material-icons">workspace_premium</span> Par événement &amp; Certificats
+    </button>
+  </div>
+
+  <!-- ── TAB 1: All participants ─────────────────────────────────────────── -->
+  <ng-container *ngIf="activeTab() === 'all'">
+    <div class="bo-filters-card">
+      <div class="bo-filters">
+        <div class="search-input-wrap" style="flex:1;max-width:380px">
+          <span class="material-icons search-icon">search</span>
+          <input type="text" [(ngModel)]="search" (ngModelChange)="load()" placeholder="Rechercher par nom ou email…">
+        </div>
+      </div>
+    </div>
+
+    <div class="loading-state" *ngIf="loading()">
+      <div class="spinner spinner-lg spinner-dark"></div>
+    </div>
+
+    <div class="bo-table-card" *ngIf="!loading()">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Participant</th>
+              <th>Email</th>
+              <th>Rôle</th>
+              <th>Inscrit le</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of users()">
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="bo-avatar">{{ u.fullName?.charAt(0) }}</div>
+                  <span class="font-semibold">{{ u.fullName }}</span>
+                </div>
+              </td>
+              <td class="cell-muted">{{ u.email }}</td>
+              <td>
+                <span class="status-badge" [class]="'status-' + u.role.toLowerCase()">{{ u.role }}</span>
+              </td>
+              <td class="cell-muted">{{ u.createdAt | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <a [routerLink]="['/backoffice/users']" class="btn btn-secondary btn-sm">
+                  <span class="material-icons">visibility</span> Voir
+                </a>
+              </td>
+            </tr>
+            <tr *ngIf="users().length === 0">
+              <td colspan="5" class="text-center muted empty-cell">Aucun participant trouvé.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination" *ngIf="totalPages() > 1">
+        <button class="page-btn" (click)="setPage(page()-1)" [disabled]="page() === 1">
+          <span class="material-icons">chevron_left</span>
+        </button>
+        <span class="page-info">{{ page() }} / {{ totalPages() }}</span>
+        <button class="page-btn" (click)="setPage(page()+1)" [disabled]="page() === totalPages()">
+          <span class="material-icons">chevron_right</span>
+        </button>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ── TAB 2: By event + Certificate generation ────────────────────────── -->
+  <ng-container *ngIf="activeTab() === 'event'">
+
+    <div class="bo-filters-card">
+      <div class="bo-filters gap-3">
+        <div class="field mb-0" style="flex:1;min-width:220px;max-width:460px">
+          <label>Sélectionner un événement</label>
+          <select [(ngModel)]="selectedEventId" (ngModelChange)="onEventChange()">
+            <option value="">— Choisir un événement —</option>
+            <option *ngFor="let e of events()" [value]="e._id">
+              {{ e.title }} ({{ e.startDate | date:'dd/MM/yyyy' }})
+            </option>
+          </select>
+        </div>
+        <div class="field mb-0" style="align-self:flex-end" *ngIf="selectedEventId">
+          <button class="btn btn-outline btn-sm" (click)="loadEventParticipants()" [disabled]="eventLoading()">
+            <span class="material-icons">refresh</span> Rafraîchir
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- No event selected -->
+    <div class="alert alert-info" *ngIf="!selectedEventId">
+      <span class="material-icons">info</span>
+      Sélectionnez un événement pour voir ses participants confirmés et générer leurs certificats.
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-state" *ngIf="eventLoading()">
+      <div class="spinner spinner-lg spinner-dark"></div>
+    </div>
+
+    <!-- Participants table with cert generation -->
+    <div class="bo-table-card" *ngIf="!eventLoading() && selectedEventId && eventParticipants().length > 0">
+      <div class="table-meta-row">
+        <span class="table-count">
+          <span class="material-icons">group</span>
+          {{ eventParticipants().length }} participant(s) confirmé(s)
+        </span>
+        <a [routerLink]="['/backoffice/certificates']" class="btn btn-primary btn-sm">
+          <span class="material-icons">workspace_premium</span>
+          Gestion complète des certificats
+        </a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Participant</th>
+              <th>Email</th>
+              <th>Statut certificat</th>
+              <th>Générer certificat</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of eventParticipants()">
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="bo-avatar">{{ participantInitial(p) }}</div>
+                  <span class="font-semibold">{{ participantName(p) }}</span>
+                </div>
+              </td>
+              <td class="cell-muted">{{ participantEmail(p) }}</td>
+              <td>
+                <span *ngIf="certStatusOf(p)" class="cert-badge cert-badge-{{ certStatusOf(p) }}">
+                  <span class="material-icons cert-badge-ico">{{ certIcon(certStatusOf(p)) }}</span>
+                  {{ certLabel(certStatusOf(p)) }}
+                </span>
+                <span *ngIf="!certStatusOf(p)" class="cert-badge cert-badge-none">
+                  <span class="material-icons cert-badge-ico">radio_button_unchecked</span>
+                  Non créé
+                </span>
+              </td>
+              <td>
+                <button
+                  class="btn btn-cert btn-sm"
+                  (click)="generateCert(p)"
+                  [disabled]="certGenerating() === (p._id || p.user?._id)"
+                  [class.btn-cert-done]="certStatusOf(p) && certStatusOf(p) !== 'pending'"
+                  [title]="certStatusOf(p) ? 'Régénérer le certificat' : 'Générer le certificat'">
+                  <span class="spinner spinner-sm" *ngIf="certGenerating() === (p._id || p.user?._id)"></span>
+                  <span class="material-icons"
+                    *ngIf="certGenerating() !== (p._id || p.user?._id)">
+                    {{ certStatusOf(p) && certStatusOf(p) !== 'pending' ? 'workspace_premium' : 'add_circle' }}
+                  </span>
+                  {{ certStatusOf(p) && certStatusOf(p) !== 'pending' ? 'Regénérer' : 'Générer' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Empty participants -->
+    <div class="alert alert-warning"
+         *ngIf="!eventLoading() && selectedEventId && eventParticipants().length === 0">
+      <span class="material-icons">warning</span>
+      Aucun participant confirmé pour cet événement.
+    </div>
+
+  </ng-container>
+
+</div>

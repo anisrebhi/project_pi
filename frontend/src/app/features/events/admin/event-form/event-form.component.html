@@ -1,0 +1,264 @@
+<div class="bo-form">
+  <div class="bo-form-header">
+    <div>
+      <span class="bo-eyebrow">{{ isEditMode ? 'Modifier' : 'Créer' }}</span>
+      <h1>{{ isEditMode ? "Modifier l'événement" : 'Nouvel événement' }}</h1>
+      <p>{{ isEditMode ? 'Mettez à jour les informations.' : 'Renseignez les informations du nouvel événement.' }}</p>
+    </div>
+    <a routerLink="/backoffice/events" class="btn btn-secondary">
+      <span class="material-icons">arrow_back</span> Retour
+    </a>
+  </div>
+
+  <!-- Loading event -->
+  <div class="spinner-center" *ngIf="loadingEvent"><span class="spinner spinner-lg"></span></div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" *ngIf="!loadingEvent" class="form-sections">
+    <div class="alert alert-error" *ngIf="serverError">
+      <span class="material-icons">error_outline</span> {{ serverError }}
+    </div>
+
+    <!-- ── Section 1 : Informations générales ── -->
+    <div class="form-section card card-pad">
+      <div class="form-section-title">
+        <span class="material-icons section-icon">info</span>
+        <h3>Informations générales</h3>
+      </div>
+
+      <div class="field">
+        <label for="title">Titre de l'événement *</label>
+        <input id="title" type="text" formControlName="title"
+          [class.invalid]="f['title'].invalid && f['title'].touched"
+          placeholder="Ex : Conférence Tech Innovators 2025">
+        <span class="error-text" *ngIf="f['title'].touched && f['title'].errors?.['required']">Le titre est requis.</span>
+        <span class="error-text" *ngIf="f['title'].touched && f['title'].errors?.['minlength']">Minimum 3 caractères.</span>
+        <span class="error-text" *ngIf="f['title'].touched && f['title'].errors?.['maxlength']">Maximum 150 caractères.</span>
+      </div>
+
+      <div class="field">
+        <label for="description">Description</label>
+        <textarea id="description" formControlName="description" rows="4"
+          placeholder="Décrivez le programme, les intervenants, ce que les participants vont apprendre..."></textarea>
+        <div class="flex-between mt-4">
+          <span class="error-text" *ngIf="f['description'].errors?.['maxlength']">Maximum 2000 caractères.</span>
+          <span class="helper-text" style="margin-left:auto">{{ f['description'].value?.length ?? 0 }}/2000</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label for="category">Catégorie</label>
+          <select id="category" formControlName="category">
+            <option *ngFor="let c of formCategories" [value]="c.value">{{ c.emoji }} {{ c.label }}</option>
+          </select>
+        </div>
+        <div class="field" *ngIf="isAdmin">
+          <label>Type de compte organisateur</label>
+          <div class="role-display">
+            <span class="material-icons" style="color:var(--color-primary)">verified_user</span>
+            Visible uniquement pour les administrateurs
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section 2 : Dates ── -->
+    <div class="form-section card card-pad">
+      <div class="form-section-title">
+        <span class="material-icons section-icon">calendar_today</span>
+        <h3>Dates et horaires</h3>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label for="startDate">Date et heure de début *</label>
+          <input id="startDate" type="datetime-local" formControlName="startDate" [min]="minDateTime"
+            [class.invalid]="f['startDate'].invalid && f['startDate'].touched">
+          <span class="error-text" *ngIf="f['startDate'].touched && f['startDate'].errors?.['required']">Requis.</span>
+          <span class="error-text" *ngIf="f['startDate'].touched && f['startDate'].errors?.['pastDate']">La date doit être future.</span>
+        </div>
+        <div class="field">
+          <label for="endDate">Date et heure de fin *</label>
+          <input id="endDate" type="datetime-local" formControlName="endDate"
+            [class.invalid]="f['endDate'].invalid && f['endDate'].touched">
+          <span class="error-text" *ngIf="f['endDate'].touched && f['endDate'].errors?.['required']">Requis.</span>
+          <span class="error-text" *ngIf="form.errors?.['dateRangeInvalid'] && f['endDate'].touched">La fin doit être après le début.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section 3 : Lieu ── -->
+    <div class="form-section card card-pad">
+      <div class="form-section-title">
+        <span class="material-icons section-icon">place</span>
+        <h3>Lieu de l'événement</h3>
+      </div>
+
+      <div class="field">
+        <label for="address">Adresse</label>
+        <div class="address-row">
+          <input id="address" type="text" formControlName="address" placeholder="Ex : Avenue Habib Bourguiba, Tunis">
+          <button type="button" class="btn btn-secondary btn-sm" (click)="centerMapOnAddress()" [disabled]="geocodingAddress" style="white-space:nowrap">
+            <span class="spinner" *ngIf="geocodingAddress"></span>
+            <span class="material-icons" *ngIf="!geocodingAddress" style="font-size:15px">search</span>
+            Localiser
+          </button>
+        </div>
+        <span class="helper-text">Saisissez l'adresse puis cliquez sur "Localiser", utilisez votre position actuelle, ou cliquez/glissez directement sur la carte.</span>
+      </div>
+
+      <!-- Map (Leaflet / OpenStreetMap — 100% gratuit, sans clé API) -->
+      <div class="map-container" #mapDiv>
+        <button type="button" class="map-geoloc-btn" (click)="useMyLocation()" [disabled]="locatingMe"
+                matTooltip="Centrer la carte sur ma position actuelle">
+          <span class="spinner" *ngIf="locatingMe"></span>
+          <span class="material-icons" *ngIf="!locatingMe">my_location</span>
+          {{ locatingMe ? 'Localisation...' : 'Utiliser ma position actuelle' }}
+        </button>
+        <div class="map-hint" *ngIf="!f['latitude'].value">Cliquez sur la carte pour placer le marqueur</div>
+      </div>
+
+      <div class="coords-row mt-8" *ngIf="f['latitude'].value && f['longitude'].value">
+        <span class="material-icons" style="font-size:14px;color:var(--color-success)">check_circle</span>
+        <span class="text-xs muted">
+          Position sélectionnée : {{ f['latitude'].value | number:'1.4-6' }}, {{ f['longitude'].value | number:'1.4-6' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- ── Section 4 : Capacité & Tarif ── -->
+    <div class="form-section card card-pad">
+      <div class="form-section-title">
+        <span class="material-icons section-icon">confirmation_number</span>
+        <h3>Capacité et tarification</h3>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label for="capacity">Nombre de places *</label>
+          <input id="capacity" type="number" formControlName="capacity" min="1"
+            [class.invalid]="f['capacity'].invalid && f['capacity'].touched">
+          <span class="error-text" *ngIf="f['capacity'].touched && f['capacity'].errors?.['required']">Requis.</span>
+          <span class="error-text" *ngIf="f['capacity'].touched && f['capacity'].errors?.['min']">Minimum 1 place.</span>
+        </div>
+        <div class="field">
+          <label for="type">Type d'événement *</label>
+          <select id="type" formControlName="type">
+            <option value="free">🎁 Gratuit</option>
+            <option value="paid">💳 Payant</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field" *ngIf="f['type'].value === 'paid'">
+        <label for="price">Prix par billet (DT) *</label>
+        <input id="price" type="number" formControlName="price" min="0.01" step="0.01"
+          [class.invalid]="f['price'].invalid && f['price'].touched"
+          placeholder="Ex : 15.00">
+        <span class="error-text" *ngIf="f['price'].touched && f['price'].errors?.['required']">Requis pour un événement payant.</span>
+        <span class="error-text" *ngIf="f['price'].touched && f['price'].errors?.['min']">Le prix doit être supérieur à 0.</span>
+        <span class="helper-text">Ce tarif s'applique si aucun type de billet n'est défini ci-dessous.</span>
+      </div>
+
+      <div class="field">
+        <label for="maxTicketsPerUser">Limite de billets par utilisateur *</label>
+        <input id="maxTicketsPerUser" type="number" formControlName="maxTicketsPerUser" min="1" max="20"
+          [class.invalid]="f['maxTicketsPerUser'].invalid && f['maxTicketsPerUser'].touched">
+        <span class="error-text" *ngIf="f['maxTicketsPerUser'].touched && f['maxTicketsPerUser'].errors?.['required']">Requis.</span>
+        <span class="error-text" *ngIf="f['maxTicketsPerUser'].touched && f['maxTicketsPerUser'].errors?.['max']">Maximum 20 billets par utilisateur.</span>
+      </div>
+    </div>
+
+    <!-- ── Section 4b : Types de billets ── -->
+    <div class="form-section card card-pad" *ngIf="f['type'].value === 'paid'">
+      <div class="form-section-title">
+        <span class="material-icons section-icon">local_activity</span>
+        <h3>Types de billets</h3>
+      </div>
+      <p class="helper-text mb-8">Optionnel : définissez plusieurs types de billets (Standard, VIP, Premium, Étudiant) avec des prix différents. Laissez vide pour utiliser le prix unique ci-dessus.</p>
+
+      <div formArrayName="ticketTypes">
+        <div *ngFor="let ttGroup of ticketTypesArray.controls; let i = index" [formGroupName]="i" class="ticket-type-card">
+          <div class="form-row">
+            <div class="field">
+              <label>Type *</label>
+              <select formControlName="name">
+                <option *ngFor="let n of ticketTypeNames" [value]="n">{{ n }}</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Prix (DT) *</label>
+              <input type="number" formControlName="price" min="0" step="0.01">
+            </div>
+            <div class="field">
+              <label>Quota (optionnel)</label>
+              <input type="number" formControlName="quantity" min="0" placeholder="Illimité">
+            </div>
+          </div>
+
+          <div class="field" style="display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="earlyBird{{i}}" formControlName="earlyBirdEnabled" style="width:auto;">
+            <label for="earlyBird{{i}}" style="margin:0;">Tarif Early Bird</label>
+          </div>
+
+          <div class="form-row" *ngIf="ttGroup.get('earlyBirdEnabled')?.value">
+            <div class="field">
+              <label>Prix Early Bird (DT) *</label>
+              <input type="number" formControlName="earlyBirdPrice" min="0" step="0.01">
+            </div>
+            <div class="field">
+              <label>Date limite Early Bird *</label>
+              <input type="datetime-local" formControlName="earlyBirdDeadline">
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-secondary btn-sm" (click)="removeTicketType(i)">
+            <span class="material-icons" style="font-size:15px">delete</span> Retirer ce type
+          </button>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-secondary" (click)="addTicketType()">
+        <span class="material-icons" style="font-size:16px">add</span> Ajouter un type de billet
+      </button>
+    </div>
+
+    <!-- ── Section 5 : Image ── -->
+    <div class="form-section card card-pad">
+      <div class="form-section-title">
+        <span class="material-icons section-icon">image</span>
+        <h3>Image de l'événement</h3>
+      </div>
+
+      <div class="field" *ngIf="!imagePreviewUrl">
+        <label for="imageUrl">URL de l'image (optionnel)</label>
+        <div class="address-row">
+          <input id="imageUrl" type="url" [(ngModel)]="imageUrlInput" [ngModelOptions]="{standalone:true}"
+            placeholder="https://exemple.com/image.jpg">
+          <button type="button" class="btn btn-secondary btn-sm" (click)="onImageUrlChange()">
+            <span class="material-icons" style="font-size:15px">visibility</span> Aperçu
+          </button>
+        </div>
+        <span class="helper-text">Fournissez l'URL d'une image publique pour illustrer votre événement.</span>
+      </div>
+
+      <div *ngIf="imagePreviewUrl" class="img-preview-zone">
+        <div class="img-preview-wrap">
+          <img [src]="imagePreviewUrl" alt="Aperçu" (error)="removeImage()">
+          <button type="button" class="img-preview-remove" (click)="removeImage()" matTooltip="Retirer l'image">✕</button>
+        </div>
+        <span class="helper-text mt-8">Cliquez sur ✕ pour changer l'image.</span>
+      </div>
+    </div>
+
+    <!-- ── Actions ── -->
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-lg" [disabled]="form.invalid || loading">
+        <span class="spinner" *ngIf="loading"></span>
+        <span class="material-icons" *ngIf="!loading" style="font-size:18px">{{ isEditMode ? 'save' : 'add_circle' }}</span>
+        {{ loading ? 'Enregistrement...' : (isEditMode ? 'Enregistrer les modifications' : "Créer l'événement") }}
+      </button>
+      <a routerLink="/backoffice/events" class="btn btn-secondary btn-lg">Annuler</a>
+    </div>
+  </form>
+</div>

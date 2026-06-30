@@ -1,0 +1,89 @@
+<div class="bo-page">
+  <div class="bo-page-header">
+    <div class="bo-page-header-left">
+      <div class="bo-page-badge">
+        <span class="material-icons">manage_accounts</span>
+      </div>
+      <div>
+        <h1>Gestion des Utilisateurs</h1>
+        <p class="muted text-sm">Gérez les comptes et rôles des utilisateurs.</p>
+      </div>
+    </div>
+    <span class="badge badge-neutral"><span class="material-icons">people</span> {{ total() }} utilisateur(s)</span>
+  </div>
+
+  <div class="bo-filters-card">
+    <div class="bo-filters">
+      <div class="search-input-wrap" style="flex:1;max-width:320px">
+        <span class="material-icons search-icon">search</span>
+        <input type="text" [(ngModel)]="search" (ngModelChange)="load()" placeholder="Nom ou email…">
+      </div>
+      <div class="field mb-0" style="min-width:160px">
+        <select [(ngModel)]="roleFilter" (ngModelChange)="load()">
+          <option value="">Tous les rôles</option>
+          <option value="ADMIN">Admin</option>
+          <option value="ORGANIZER">Organisateur</option>
+          <option value="PARTICIPANT">Participant</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="loading()"><div class="spinner spinner-lg spinner-dark"></div></div>
+
+  <div class="alert alert-error animate-fade" *ngIf="errMsg()"><span class="material-icons">error</span> {{ errMsg() }}</div>
+  <div class="alert alert-success animate-fade" *ngIf="toast()"><span class="material-icons">check_circle</span> {{ toast() }}</div>
+
+  <div class="bo-table-card" *ngIf="!loading()">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Utilisateur</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Inscrit</th><th>Actions</th>
+        </tr></thead>
+        <tbody>
+          <tr *ngFor="let u of users()">
+            <td>
+              <div class="flex items-center gap-3">
+                <div class="bo-avatar" [style.background]="roleColor(u.role)">{{ u.fullName?.charAt(0) }}</div>
+                <span class="font-semibold">{{ u.fullName }}</span>
+              </div>
+            </td>
+            <td class="cell-muted">{{ u.email }}</td>
+            <td>
+              <select class="role-select" [value]="u.role" (change)="changeRole(u, $any($event).target.value)" [disabled]="acting() === u._id">
+                <option value="ADMIN">Admin</option>
+                <option value="ORGANIZER">Organisateur</option>
+                <option value="PARTICIPANT">Participant</option>
+              </select>
+            </td>
+            <td>
+              <span class="status-badge" [class]="u.isActive !== false ? 'status-confirmed' : 'status-cancelled'">
+                {{ u.isActive !== false ? 'Actif' : 'Inactif' }}
+              </span>
+            </td>
+            <td class="cell-muted">{{ u.createdAt | date:'dd/MM/yyyy' }}</td>
+            <td>
+              <button class="btn btn-danger btn-sm" (click)="toggleActive(u)" [disabled]="acting() === u._id">
+                <span class="spinner spinner-sm" *ngIf="acting() === u._id"></span>
+                <span class="material-icons" *ngIf="acting() !== u._id">{{ u.isActive !== false ? 'block' : 'check_circle' }}</span>
+                {{ u.isActive !== false ? 'Désactiver' : 'Activer' }}
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="users().length === 0">
+            <td colspan="6" class="text-center muted empty-cell">Aucun utilisateur trouvé.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" *ngIf="totalPages() > 1">
+      <button class="page-btn" (click)="setPage(page()-1)" [disabled]="page() === 1">
+        <span class="material-icons">chevron_left</span>
+      </button>
+      <span class="page-info">{{ page() }} / {{ totalPages() }}</span>
+      <button class="page-btn" (click)="setPage(page()+1)" [disabled]="page() === totalPages()">
+        <span class="material-icons">chevron_right</span>
+      </button>
+    </div>
+  </div>
+</div>
