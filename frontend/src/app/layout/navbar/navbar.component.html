@@ -23,8 +23,13 @@
         <a routerLink="/my-reservations" routerLinkActive="nav-active" [routerLinkActiveOptions]="{exact:false}">
           <span class="material-icons nav-icon">confirmation_number</span> Mes réservations
         </a>
+<<<<<<< HEAD
         <a routerLink="/my-certificates" routerLinkActive="nav-active">
           <span class="material-icons nav-icon">workspace_premium</span> Certificats
+=======
+        <a routerLink="/my-waitlist" routerLinkActive="nav-active">
+          <span class="material-icons nav-icon">queue</span> Liste d'attente
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
         </a>
         <a routerLink="/admin/events" routerLinkActive="nav-active" *ngIf="isOrganizerOrAdmin && !isAdmin"
            [routerLinkActiveOptions]="{exact:false}">
@@ -86,8 +91,13 @@
         <a routerLink="/my-reservations" (click)="toggle()" routerLinkActive="nav-active" [routerLinkActiveOptions]="{exact:false}" class="mobile-link">
           <span class="material-icons">confirmation_number</span> Mes réservations
         </a>
+<<<<<<< HEAD
         <a routerLink="/my-certificates" (click)="toggle()" routerLinkActive="nav-active" class="mobile-link">
           <span class="material-icons">workspace_premium</span> Certificats
+=======
+        <a routerLink="/my-waitlist" (click)="toggle()" routerLinkActive="nav-active" class="mobile-link">
+          <span class="material-icons">queue</span> Liste d'attente
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
         </a>
       </ng-template>
 

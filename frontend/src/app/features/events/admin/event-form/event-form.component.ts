@@ -345,7 +345,11 @@ export class EventFormComponent implements OnInit, AfterViewInit, OnDestroy {
       next: () => {
         this.loading = false;
         this.toast.success(this.isEditMode ? 'Événement mis à jour ✓' : 'Événement créé avec succès ✓');
+<<<<<<< HEAD
         this.router.navigateByUrl('/backoffice/events');
+=======
+        this.router.navigateByUrl('/admin/events');
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
       },
       error: (err) => { this.loading = false; this.serverError = err?.error?.message || 'Une erreur est survenue.'; },
     });

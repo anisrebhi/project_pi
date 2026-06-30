@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 :host { display: block; min-height: 100vh; }
 .auth-page { min-height: 100vh; display: flex; background: var(--color-bg); }
 .auth-container { display: flex; width: 100%; min-height: 100vh; }
@@ -37,3 +38,21 @@
 }
 .auth-link { color: var(--color-primary); font-weight: 600; text-decoration: none; }
 .auth-link:hover { text-decoration: underline; }
+=======
+.auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 15% 15%, var(--color-primary-soft) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, var(--color-accent-soft) 0%, transparent 45%),
+    var(--color-bg);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+}
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3

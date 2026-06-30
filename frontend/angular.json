@@ -3,7 +3,11 @@
   "version": 1,
   "cli": {
     "packageManager": "npm",
+<<<<<<< HEAD
     "analytics": "2a5f7ed9-c89b-4a5f-8c6f-6024d82ed325"
+=======
+    "analytics": "5967e0b0-5648-48da-8dfc-6b34a9d663ca"
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -51,6 +55,7 @@
               "budgets": [
                 {
                   "type": "initial",
+<<<<<<< HEAD
                   "maximumWarning": "1.5MB",
                   "maximumError": "2.5MB"
                 },
@@ -58,6 +63,15 @@
                   "type": "anyComponentStyle",
                   "maximumWarning": "8kB",
                   "maximumError": "16kB"
+=======
+                  "maximumWarning": "850kB",
+                  "maximumError": "1.5MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
                 }
               ],
               "outputHashing": "all"
@@ -80,10 +94,14 @@
               "buildTarget": "event-reservation-app:build:development"
             }
           },
+<<<<<<< HEAD
           "defaultConfiguration": "development",
           "options": {
             "proxyConfig": "proxy.conf.json"
           }
+=======
+          "defaultConfiguration": "development"
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n"
@@ -100,6 +118,14 @@
               {
                 "glob": "**/*",
                 "input": "public"
+<<<<<<< HEAD
+=======
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets"
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
               }
             ],
             "styles": [
@@ -111,4 +137,8 @@
       }
     }
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3

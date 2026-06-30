@@ -3,7 +3,10 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+<<<<<<< HEAD
     "rootDir": "./src",
+=======
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
     "outDir": "./dist/out-tsc",
     "strict": true,
     "noImplicitOverride": true,

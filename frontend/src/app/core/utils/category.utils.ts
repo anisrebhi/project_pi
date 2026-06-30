@@ -6,6 +6,7 @@ export interface CategoryMeta {
   icon: string;
   emoji: string;
   color: string;
+<<<<<<< HEAD
   gradient: string;
   bgLight: string;
   svgIcon: string;
@@ -72,6 +73,17 @@ export const CATEGORIES: CategoryMeta[] = [
     bgLight: '#ede9fe',
     svgIcon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`,
   },
+=======
+}
+
+export const CATEGORIES: CategoryMeta[] = [
+  { value: '',           label: 'Toutes',       icon: 'apps',            emoji: '🎯', color: '#6366f1' },
+  { value: 'conference', label: 'Conférence',   icon: 'record_voice_over', emoji: '🎤', color: '#4b3fe4' },
+  { value: 'workshop',   label: 'Atelier',      icon: 'build',           emoji: '🛠️', color: '#059669' },
+  { value: 'meeting',    label: 'Réunion',      icon: 'groups',          emoji: '🤝', color: '#0284c7' },
+  { value: 'sport',      label: 'Sport',        icon: 'sports_soccer',   emoji: '⚽', color: '#d97706' },
+  { value: 'other',      label: 'Autre',        icon: 'category',        emoji: '📌', color: '#7c3aed' },
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
 ];
 
 export const FILTER_CATEGORIES = CATEGORIES;
@@ -80,6 +92,7 @@ export const FORM_CATEGORIES   = CATEGORIES.filter(c => c.value !== '');
 export function getCategoryMeta(value: string | undefined | null): CategoryMeta {
   return CATEGORIES.find(c => c.value === value) ?? CATEGORIES[0];
 }
+<<<<<<< HEAD
 export function getCategoryEmoji(value: string | undefined | null): string {
   return getCategoryMeta(value).emoji;
 }
@@ -95,3 +108,13 @@ export function getCategoryGradient(value: string | undefined | null): string {
 export function getCategoryBgLight(value: string | undefined | null): string {
   return getCategoryMeta(value).bgLight;
 }
+=======
+
+export function getCategoryEmoji(value: string | undefined | null): string {
+  return getCategoryMeta(value).emoji;
+}
+
+export function getCategoryLabel(value: string | undefined | null): string {
+  return getCategoryMeta(value).label;
+}
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3

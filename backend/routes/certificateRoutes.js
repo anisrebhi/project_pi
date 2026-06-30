@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * @file routes/certificateRoutes.js
  *
@@ -68,5 +69,17 @@ router.delete('/:id',                    organizerAndAdmin, deleteCertificate);
 
 // ── Admin only ─────────────────────────────────────────────────────────────────
 router.get('/all', adminOnly, getAllCertificates);
+=======
+const express = require('express');
+const router  = express.Router();
+const { protect }        = require('../middleware/authMiddleware');
+const { generateCertificates, getMyCertificates, downloadCertificate, verifyCertificate } = require('../controllers/certificateController');
+
+router.get('/verify/:code',       verifyCertificate);              // Public
+router.use(protect);
+router.post('/generate/:eventId', generateCertificates);           // Organizer/Admin
+router.get('/my',                 getMyCertificates);              // Participant
+router.get('/download/:id',       downloadCertificate);            // Participant/Admin
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
 
 module.exports = router;

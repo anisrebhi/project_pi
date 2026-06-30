@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <div class="home-page">
   <section class="hero-section">
     <div class="hero-bg-shapes">
@@ -128,3 +129,84 @@
     <app-recommended-events></app-recommended-events>
   </div>
 </div>
+=======
+<div class="hero-section animate-in">
+  <div class="hero-logo">
+    <img
+      src="assets/logo.svg"
+      alt="EventPass"
+      class="hero-logo-img"
+      (error)="onLogoError($event)"
+    >
+  </div>
+
+  <h1 class="hero-headline">
+    Découvrez & réservez<br>
+    <span>des événements inoubliables</span>
+  </h1>
+  <p class="hero-sub">
+    Conférences, ateliers, rencontres sportives — trouvez et réservez en quelques clics avec votre billet QR code instantané.
+  </p>
+
+  <div class="hero-actions">
+    <ng-container *ngIf="auth.isAuthenticated(); else guestActions">
+      <a [routerLink]="isAdmin ? '/admin/events' : '/events'" class="btn btn-primary btn-lg">
+        <span class="material-icons">event</span>
+        Voir les événements
+      </a>
+      <a [routerLink]="isAdmin ? '/admin/reservations' : '/my-reservations'" class="btn btn-secondary btn-lg">
+        <span class="material-icons">confirmation_number</span>
+        Mes réservations
+      </a>
+    </ng-container>
+    <ng-template #guestActions>
+      <a routerLink="/register" class="btn btn-primary btn-lg">
+        <span class="material-icons">person_add</span>
+        Créer un compte
+      </a>
+      <a routerLink="/login" class="btn btn-secondary btn-lg">
+        <span class="material-icons">login</span>
+        Se connecter
+      </a>
+    </ng-template>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-num">100%</div>
+      <div class="hero-stat-label">En ligne & instantané</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">QR</div>
+      <div class="hero-stat-label">Billet numérique sécurisé</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">PDF</div>
+      <div class="hero-stat-label">Ticket téléchargeable</div>
+    </div>
+  </div>
+</div>
+
+<div class="features-section">
+  <div class="feature-card animate-in">
+    <div class="feature-icon">🎟️</div>
+    <h3>Réservation instantanée</h3>
+    <p>Réservez en quelques secondes et recevez votre QR code par email immédiatement.</p>
+  </div>
+  <div class="feature-card animate-in">
+    <div class="feature-icon">🗺️</div>
+    <h3>Localisez l'événement</h3>
+    <p>Chaque événement est géolocalisé sur la carte pour vous aider à vous orienter facilement.</p>
+  </div>
+  <div class="feature-card animate-in">
+    <div class="feature-icon">📊</div>
+    <h3>Suivi en temps réel</h3>
+    <p>Consultez vos réservations, téléchargez vos billets PDF et gérez vos événements à tout moment.</p>
+  </div>
+</div>
+
+<!-- ── Lot-2: Personalized Recommendations ──────────────────────────────── -->
+<div class="home-reco-wrapper">
+  <app-recommended-events></app-recommended-events>
+</div>
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3

@@ -8,8 +8,14 @@ const EventPhoto  = require('../models/EventPhoto');
 const Event       = require('../models/Event');
 const Reservation = require('../models/Reservation');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
+<<<<<<< HEAD
 const { sendMail: sendEmail } = require('../utils/emailService');
 const { buildNewPhotosEmail } = require('../utils/emailTemplates');
+=======
+const { sendEmail } = require('../utils/emailService');
+const { buildNewPhotosEmail } = require('../utils/emailTemplates');
+const { User }    = require('../models/User');
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
 
 /** POST /api/photos/:eventId — Organizer uploads photos */
 const uploadPhotos = async (req, res) => {

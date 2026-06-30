@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .bo-page { padding: 4px; }
 .bo-page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
 .bo-eyebrow { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--color-primary); font-weight: 700; }
@@ -49,3 +50,29 @@
 .bo-pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 32px; flex-wrap: wrap; gap: 12px; }
 .bo-page-info { font-size: .85rem; color: var(--color-muted); }
 .bo-page-btns { display: flex; gap: 4px; }
+=======
+.search-input-wrap { position: relative; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--color-muted); font-size: 18px !important; pointer-events: none; }
+.search-input-wrap input { padding-left: 40px; }
+
+.event-admin-card { display: flex; flex-direction: column; transition: all var(--transition); }
+.event-card-img-wrap { position: relative; }
+.event-admin-body { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.event-admin-title { font-size: 16px; font-weight: 700; margin: 4px 0 8px; line-height: 1.3; }
+.event-admin-meta { display: flex; flex-direction: column; gap: 4px; }
+.meta-icon { font-size: 14px !important; color: var(--color-muted); flex-shrink: 0; }
+.meta-text { font-size: 12px; color: var(--color-muted); }
+.meta-row { display: flex; align-items: center; gap: 6px; }
+
+.event-status-overlay { position: absolute; top: 10px; right: 10px; }
+
+.event-admin-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--color-line);
+  background: var(--color-bg);
+  margin-top: auto;
+}
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3

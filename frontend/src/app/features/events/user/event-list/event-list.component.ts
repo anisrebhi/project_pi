@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -17,10 +18,23 @@ import {
   getCategoryColor, getCategoryGradient,
   getCategoryMeta,
 } from '../../../../core/utils/category.utils';
+=======
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { debounceTime } from 'rxjs';
+
+import { EventService }  from '../../../../core/services/event.service';
+import { EventModel, EventQueryParams, computeAvailableSpots, computeIsFull, getEventImageUrl } from '../../../../core/models/event.model';
+import { Pagination }    from '../../../../core/models/api-response.model';
+import { FILTER_CATEGORIES, getCategoryEmoji, getCategoryLabel } from '../../../../core/utils/category.utils';
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
 
 @Component({
   selector: 'app-user-event-list',
   standalone: true,
+<<<<<<< HEAD
   imports: [CommonModule, ReactiveFormsModule, RouterLink, DecimalPipe],
   templateUrl: './event-list.component.html',
   styleUrl:    './event-list.component.css',
@@ -30,6 +44,16 @@ export class UserEventListComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   events:     EventModel[]    = [];
+=======
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  templateUrl: './event-list.component.html',
+  styleUrl:    './event-list.component.css',
+})
+export class UserEventListComponent implements OnInit {
+  private fb = inject(FormBuilder);
+
+  events: EventModel[]    = [];
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
   pagination: Pagination | null = null;
   loading      = true;
   errorMessage = '';
@@ -37,6 +61,7 @@ export class UserEventListComponent implements OnInit, OnDestroy {
   page = 1;
   readonly limit = 9;
 
+<<<<<<< HEAD
   filters = this.fb.group({
     search:   [''],
     category: [''],
@@ -70,11 +95,22 @@ export class UserEventListComponent implements OnInit, OnDestroy {
   }
 
   get pageNumbers(): number[] { return this.pages; }
+=======
+  filters = this.fb.group({ search: [''], category: [''] });
+  readonly categories = FILTER_CATEGORIES;
+
+  getCategoryEmoji   = getCategoryEmoji;
+  getCategoryLabel   = getCategoryLabel;
+  getEventImageUrl   = getEventImageUrl;
+  computeAvailableSpots = computeAvailableSpots;
+  computeIsFull      = computeIsFull;
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
 
   constructor(private eventService: EventService) {}
 
   ngOnInit(): void {
     this.fetchEvents();
+<<<<<<< HEAD
     this.filters.valueChanges
       .pipe(debounceTime(350), takeUntil(this.destroy$))
       .subscribe(() => { this.page = 1; this.fetchEvents(); });
@@ -83,11 +119,15 @@ export class UserEventListComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+=======
+    this.filters.valueChanges.pipe(debounceTime(300)).subscribe(() => { this.page = 1; this.fetchEvents(); });
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
   }
 
   fetchEvents(): void {
     this.loading = true;
     this.errorMessage = '';
+<<<<<<< HEAD
 
     const { search, category, type, sortBy } = this.filters.getRawValue();
     const params: EventQueryParams = {
@@ -114,24 +154,43 @@ export class UserEventListComponent implements OnInit, OnDestroy {
           || err?.error?.message
           || 'Impossible de charger les événements.';
       },
+=======
+    const { search, category } = this.filters.getRawValue();
+    const params: EventQueryParams = { page: this.page, limit: this.limit };
+    if (search)   params.search   = search;
+    if (category) params.category = category as EventQueryParams['category'];
+
+    this.eventService.listUpcoming(params).subscribe({
+      next: (res) => { this.events = res.data; this.pagination = res.pagination ?? null; this.loading = false; },
+      error: (err) => { this.loading = false; this.errorMessage = err?.error?.message || 'Impossible de charger les événements.'; },
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
     });
   }
 
   goToPage(page: number): void {
     if (page < 1 || (this.pagination && page > this.pagination.totalPages)) return;
     this.page = page;
+<<<<<<< HEAD
     window.scrollTo({ top: 0, behavior: 'smooth' });
+=======
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
     this.fetchEvents();
   }
 
   get pages(): number[] {
     if (!this.pagination) return [];
+<<<<<<< HEAD
     const total = this.pagination.totalPages;
     const cur   = this.pagination.currentPage;
     const range: number[] = [];
     for (let i = Math.max(1, cur - 2); i <= Math.min(total, cur + 2); i++) {
       range.push(i);
     }
+=======
+    const total = this.pagination.totalPages, cur = this.pagination.currentPage;
+    const range: number[] = [];
+    for (let i = Math.max(1, cur - 2); i <= Math.min(total, cur + 2); i++) range.push(i);
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
     return range;
   }
 

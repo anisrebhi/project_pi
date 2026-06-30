@@ -7,7 +7,11 @@
     </div>
   </div>
 
+<<<<<<< HEAD
   <form [formGroup]="filters" class="filters-bar">
+=======
+  <form [formGroup]="filters" class="card filters-bar">
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
     <div class="field" style="margin-bottom:0; flex:2; min-width:220px">
       <label for="search">Rechercher</label>
       <div class="search-input-wrap">
@@ -19,16 +23,26 @@
       <label for="status">Statut</label>
       <select id="status" formControlName="status">
         <option value="">Tous les statuts</option>
+<<<<<<< HEAD
         <option value="confirmed">Confirmée</option>
         <option value="pending">En attente</option>
         <option value="cancelled">Annulée</option>
+=======
+        <option value="confirmed">✅ Confirmée</option>
+        <option value="pending">⏳ En attente</option>
+        <option value="cancelled">❌ Annulée</option>
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
       </select>
     </div>
   </form>
 
   <div class="alert alert-error mt-16" *ngIf="errorMessage">
+<<<<<<< HEAD
     <span class="material-icons">error_outline</span>
     <span>{{ errorMessage }}</span>
+=======
+    <span class="material-icons">error_outline</span> {{ errorMessage }}
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
   </div>
 
   <div class="spinner-center" *ngIf="loading"><span class="spinner spinner-lg"></span></div>
@@ -50,8 +64,13 @@
         </thead>
         <tbody>
           <tr *ngFor="let reservation of visibleReservations">
+<<<<<<< HEAD
             <td>
               <span class="ref-badge">#{{ reservation._id.slice(-8) }}</span>
+=======
+            <td class="cell-muted" style="font-family: var(--font-mono); font-size: 12px;">
+              #{{ reservation._id.slice(-8) }}
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
             </td>
             <td>
               <div class="cell-strong">{{ asUser(reservation).fullName }}</div>
@@ -62,6 +81,7 @@
               <div class="cell-muted text-sm">{{ asEvent(reservation).startDate | date: 'dd/MM/yyyy HH:mm' }}</div>
             </td>
             <td>
+<<<<<<< HEAD
               <span class="badge badge-primary">{{ reservation.numberOfTickets }} billets</span>
             </td>
             <td class="cell-price">{{ reservation.totalPrice }} DT</td>
@@ -70,6 +90,16 @@
             <td>
               <button class="btn btn-ghost btn-sm" *ngIf="reservation.status !== 'cancelled'" (click)="cancelReservation(reservation)">
                 <span class="material-icons">cancel</span>
+=======
+              <span class="badge badge-primary">{{ reservation.numberOfTickets }} 🎟️</span>
+            </td>
+            <td class="cell-strong">{{ reservation.totalPrice }} DT</td>
+            <td><app-status-badge [status]="reservation.status"></app-status-badge></td>
+            <td class="cell-muted text-sm">{{ reservation.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <button class="btn btn-danger btn-sm" *ngIf="reservation.status !== 'cancelled'" (click)="cancelReservation(reservation)">
+                <span class="material-icons" style="font-size:14px">cancel</span> Annuler
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
               </button>
             </td>
           </tr>
@@ -78,24 +108,40 @@
     </div>
 
     <ng-template #empty>
+<<<<<<< HEAD
       <div class="state-block mt-16">
         <span class="state-icon">🗂️</span>
+=======
+      <div class="state-block card mt-16">
+        <div class="state-icon">🗂️</div>
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
         <h3>Aucune réservation trouvée</h3>
         <p>Ajustez vos filtres pour afficher d'autres résultats.</p>
       </div>
     </ng-template>
 
+<<<<<<< HEAD
     <div class="flex-between mt-8" *ngIf="pagination && pagination.totalPages > 1">
+=======
+    <div class="flex-between mt-24" *ngIf="pagination && pagination.totalPages > 1">
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
       <span class="text-sm muted">
         Page {{ pagination.currentPage }} / {{ pagination.totalPages }} — {{ pagination.total }} réservation(s)
       </span>
       <div class="pagination">
         <button class="page-btn" [disabled]="!pagination.hasPrevPage" (click)="goToPage(page - 1)">
+<<<<<<< HEAD
           <span class="material-icons">chevron_left</span>
         </button>
         <span class="page-info">{{ pagination.currentPage }}</span>
         <button class="page-btn" [disabled]="!pagination.hasNextPage" (click)="goToPage(page + 1)">
           <span class="material-icons">chevron_right</span>
+=======
+          <span class="material-icons" style="font-size:16px">chevron_left</span>
+        </button>
+        <button class="page-btn" [disabled]="!pagination.hasNextPage" (click)="goToPage(page + 1)">
+          <span class="material-icons" style="font-size:16px">chevron_right</span>
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
         </button>
       </div>
     </div>

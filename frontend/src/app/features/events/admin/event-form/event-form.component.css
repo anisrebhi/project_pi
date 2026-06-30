@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .bo-form { max-width: 720px; }
 .bo-form-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
 .bo-form-header .bo-eyebrow { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--color-primary); font-weight: 700; }
@@ -14,10 +15,33 @@
 .address-row input { flex: 1; }
 
 .coords-row { display: flex; align-items: center; gap: 6px; }
+=======
+.form-sections { display: flex; flex-direction: column; gap: 20px; }
+
+.form-section { }
+.form-section-title { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--color-line); }
+.form-section-title h3 { margin: 0; font-size: 17px; }
+.section-icon { color: var(--color-primary); font-size: 20px !important; }
+
+.address-row { display: flex; gap: 8px; align-items: center; }
+.address-row input { flex: 1; }
+
+.map-placeholder {
+  height: 200px;
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-md);
+  border: 1.5px dashed var(--color-line);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 24px;
+}
+.coords-row { display: flex; align-items: center; gap: 6px; }
+
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
 .img-preview-zone { display: flex; flex-direction: column; }
 
 .role-display {
   display: flex; align-items: center; gap: 8px;
+<<<<<<< HEAD
   padding: 10px 14px; background: var(--brand-50);
   border: 1.5px solid var(--brand-200); border-radius: var(--radius-sm);
   font-size: .8rem; color: var(--color-primary); font-weight: 600;
@@ -28,3 +52,13 @@
 
 .ticket-type-card { background: var(--gray-50); border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 20px; margin-bottom: 12px; }
 :host-context(.dark) .ticket-type-card { background: rgba(255,255,255,.02); }
+=======
+  padding: 10px 14px;
+  background: var(--color-primary-soft);
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  font-size: 13px; color: var(--color-primary-dark); font-weight: 500;
+}
+
+.form-actions { display: flex; gap: 12px; align-items: center; }
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3

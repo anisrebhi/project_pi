@@ -1,11 +1,13 @@
 {
   "name": "event-management-api-v2",
   "version": "2.1.0",
+<<<<<<< HEAD
   "description": "EventPass API \u2014 Events, Users, Reservations, Chat, Reviews, Certificates, Gallery",
+=======
+  "description": "EventPass API — Events, Users, Reservations, Chat, Reviews, Certificates, Gallery",
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
   "main": "server.js",
-  "engines": {
-    "node": ">=18.0.0"
-  },
+  "engines": { "node": ">=18.0.0" },
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
@@ -13,6 +15,7 @@
     "seed:lot2": "node scripts/seedLot2.js",
     "test:lot2": "node scripts/testLot2.js"
   },
+<<<<<<< HEAD
   "keywords": [
     "event-management",
     "nodejs",
@@ -21,6 +24,9 @@
     "jwt",
     "socket.io"
   ],
+=======
+  "keywords": ["event-management", "nodejs", "express", "mongodb", "jwt", "socket.io"],
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
   "author": "Event Management Team",
   "license": "MIT",
   "dependencies": {
@@ -42,9 +48,7 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0"
   },
-  "devDependencies": {
-    "nodemon": "^3.0.2"
-  },
+  "devDependencies": { "nodemon": "^3.0.2" },
   "overrides": {
     "glob": "8.1.0",
     "lru-cache": "9.1.2",

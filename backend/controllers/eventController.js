@@ -7,6 +7,10 @@
 const Event = require("../models/Event");
 const { User, ROLES } = require("../models/User");
 const Reservation = require("../models/Reservation");
+<<<<<<< HEAD
+=======
+const WaitlistEntry = require("../models/WaitlistEntry");
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
 const { sendSuccess, sendError } = require("../utils/apiResponse");
 const { generateEventQRCode } = require("../utils/qrCodeHelper");
 const { notifyEventModified, notifyEventCancelled } = require("../utils/notificationService");
@@ -24,6 +28,7 @@ const getAllEvents = async (req, res, next) => {
     const skip  = (page - 1) * limit;
 
     const filter = {};
+<<<<<<< HEAD
 
     // Non-admin/organizer users only see active events
     const isStaff = req.user && (req.user.role === 'ADMIN' || req.user.role === 'ORGANIZER');
@@ -33,6 +38,9 @@ const getAllEvents = async (req, res, next) => {
       const searchRegex = { $regex: req.query.search, $options: 'i' };
       filter.$or = [{ title: searchRegex }, { description: searchRegex }];
     }
+=======
+    if (req.query.search)   filter.$text     = { $search: req.query.search };
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
     if (req.query.category) filter.category  = req.query.category;
     if (req.query.type)     filter.type      = req.query.type;
     if (req.query.startFrom || req.query.startTo) {
@@ -47,12 +55,17 @@ const getAllEvents = async (req, res, next) => {
     const [events, total] = await Promise.all([
       Event.find(filter)
         .populate('organizer', 'fullName email')
+<<<<<<< HEAD
         .populate('participants', '_id')      // only IDs needed for count
+=======
+        .populate('participants', 'fullName email')
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
         .sort({ [sortField]: sortOrder })
         .skip(skip).limit(limit).lean(),
       Event.countDocuments(filter),
     ]);
 
+<<<<<<< HEAD
     // Add computed fields that Mongoose virtuals normally provide
     // (lost when using .lean() for performance)
     const now = new Date();
@@ -74,6 +87,11 @@ const getAllEvents = async (req, res, next) => {
     const totalPages = Math.ceil(total / limit);
     return ok(res, 200, 'Events fetched successfully', {
       data: enriched,
+=======
+    const totalPages = Math.ceil(total / limit);
+    return ok(res, 200, 'Events fetched successfully', {
+      data: events,
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
       pagination: { total, totalPages, currentPage: page, limit,
         hasNextPage: page < totalPages, hasPrevPage: page > 1 },
     });
@@ -97,6 +115,7 @@ const getEventById = async (req, res, next) => {
     next(error);
   }
 };
+<<<<<<< HEAD
 
 // ─── Create Event ─────────────────────────────────────────────────────────────
 
@@ -150,9 +169,67 @@ const createEvent = async (req, res, next) => {
 };
 
 // ─── Update Event ─────────────────────────────────────────────────────────────
+=======
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+
+// ─── Create Event ─────────────────────────────────────────────────────────────
+
+const createEvent = async (req, res, next) => {
+  try {
+<<<<<<< HEAD
+=======
+    const {
+      title, description, location,
+      startDate, endDate, category,
+      capacity, type, price, images,
+      ticketTypes, maxTicketsPerUser,
+    } = req.body;
+
+    // Build images array: combine uploaded files + URL objects from body
+    const uploadedImages = (req.files || []).map((f) => ({
+      url: `${process.env.BASE_URL}/uploads/${f.filename}`,
+      filename: f.filename,
+      isUploaded: true,
+    }));
+
+    const urlImages = Array.isArray(images)
+      ? images.map((img) => ({
+          url: typeof img === 'string' ? img : img.url,
+          filename: '',
+          isUploaded: false,
+        }))
+      : [];
+
+    const event = await Event.create({
+      title, description, location,
+      startDate, endDate, category,
+      capacity, type,
+      price: type === 'free' ? 0 : price,
+      organizer: req.user._id,
+      images: [...uploadedImages, ...urlImages],
+      ticketTypes: type === 'paid' ? (ticketTypes || []) : [],
+      maxTicketsPerUser: maxTicketsPerUser || 20,
+    });
+
+
+    // Auto-generate QR code and persist it
+    try {
+      const baseUrl = process.env.FRONTEND_URL || process.env.BASE_URL || 'http://localhost:3000';
+      event.qrCode = await generateEventQRCode(event, baseUrl);
+      await event.save();
+    } catch (qrErr) {
+      console.error('[QR] Failed to generate QR code for event', event._id, qrErr.message);
+    }
+
+    return ok(res, 201, 'Event created successfully', { data: event });
+  } catch (err) { next(err); }
+};
+
+// ─── Update Event ─────────────────────────────────────────────────────────────
 
 const updateEvent = async (req, res, next) => {
   try {
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
     const { id } = req.params;
 
     const event = await Event.findById(id);
@@ -245,8 +322,13 @@ const deleteEvent = async (req, res, next) => {
     // Soft delete the event
     await event.softDelete();
 
+<<<<<<< HEAD
     // Notify all confirmed participants and cancel their reservations
     // (fire-and-forget)
+=======
+    // Notify all confirmed participants and cancel their reservations, then
+    // expire any waitlist entries (all fire-and-forget)
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
     Reservation.find({ event: id, status: 'confirmed' })
       .populate('user', 'fullName email')
       .then(async (reservations) => {
@@ -257,6 +339,12 @@ const deleteEvent = async (req, res, next) => {
       })
       .catch(() => {});
 
+<<<<<<< HEAD
+=======
+    WaitlistEntry.updateMany({ event: id, status: { $in: ['waiting', 'notified'] } }, { $set: { status: 'expired' } })
+      .catch(() => {});
+
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
     // Remove the event reference from all participants
     await User.updateMany({ events: id }, { $pull: { events: id } });
 

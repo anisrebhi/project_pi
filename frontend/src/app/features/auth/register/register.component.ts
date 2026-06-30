@@ -66,7 +66,11 @@ export class RegisterComponent {
         next: (res) => {
           this.loading = false;
           this.toast.success(`Compte créé. Bienvenue, ${res.data.user.fullName} !`);
+<<<<<<< HEAD
           const role = res.data.user.role; this.router.navigateByUrl(role === 'ADMIN' || role === 'ORGANIZER' ? '/backoffice' : '/events');
+=======
+          this.router.navigateByUrl(res.data.user.role === 'ADMIN' ? '/admin/events' : '/events');
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
         },
         error: (err) => {
           this.loading = false;

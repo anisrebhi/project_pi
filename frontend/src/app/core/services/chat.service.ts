@@ -6,6 +6,7 @@ import { ApiResponse } from '../models/api-response.model';
 import { ChatMessage } from '../models/lot2.models';
 import { AuthService } from './auth.service';
 
+<<<<<<< HEAD
 @Injectable({ providedIn: 'root' })
 export class ChatService implements OnDestroy {
   private readonly apiUrl    = `${environment.apiUrl}/messages`;
@@ -16,13 +17,32 @@ export class ChatService implements OnDestroy {
   readonly typing$      = new Subject<{ userId: string; fullName: string }>();
   readonly stopTyping$  = new Subject<{ userId: string }>();
   readonly connected$   = new BehaviorSubject<boolean>(false);
+=======
+// Dynamic import of socket.io-client to avoid SSR issues
+declare const require: any;
+
+@Injectable({ providedIn: 'root' })
+export class ChatService implements OnDestroy {
+  private readonly apiUrl = `${environment.apiUrl}/messages`;
+  private socket: any = null;
+  private readonly socketUrl = environment.apiUrl.replace('/api', '');
+
+  readonly messages$ = new Subject<ChatMessage>();
+  readonly typing$   = new Subject<{ userId: string; fullName: string }>();
+  readonly stopTyping$ = new Subject<{ userId: string }>();
+  readonly connected$ = new BehaviorSubject<boolean>(false);
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
 
   constructor(
     private http: HttpClient,
     private auth: AuthService,
   ) {}
 
+<<<<<<< HEAD
   // ─── REST fallback methods ────────────────────────────────────────────────
+=======
+  // ─── REST ─────────────────────────────────────────────────────────────────
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
   getMessages(eventId: string, page = 1, limit = 50): Observable<ApiResponse<{ messages: ChatMessage[] }>> {
     return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${eventId}?page=${page}&limit=${limit}`);
   }
@@ -39,23 +59,37 @@ export class ChatService implements OnDestroy {
     return this.http.delete<ApiResponse<null>>(`${this.apiUrl}/${messageId}`);
   }
 
+<<<<<<< HEAD
   // ─── Socket.IO — dynamic import avoids SSR / test issues ─────────────────
   async connect(): Promise<void> {
+=======
+  // ─── Socket.IO ────────────────────────────────────────────────────────────
+  connect(): void {
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
     if (this.socket?.connected) return;
     const token = this.auth.getToken();
     if (!token) return;
 
     try {
+<<<<<<< HEAD
       // Dynamic import — works with Angular build system
       const { io } = await import('socket.io-client');
       this.socket = io(this.socketUrl, {
         auth:              { token },
         transports:        ['websocket', 'polling'],
         reconnection:      true,
+=======
+      const { io } = require('socket.io-client');
+      this.socket = io(this.socketUrl, {
+        auth: { token },
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
         reconnectionDelay: 1000,
         reconnectionAttempts: 5,
       });
 
+<<<<<<< HEAD
       this.socket.on('connect',          () => this.connected$.next(true));
       this.socket.on('disconnect',       () => this.connected$.next(false));
       this.socket.on('new-message',      (msg: ChatMessage) => this.messages$.next(msg));
@@ -63,6 +97,15 @@ export class ChatService implements OnDestroy {
       this.socket.on('user-stop-typing', (d: any) => this.stopTyping$.next(d));
     } catch (err) {
       console.warn('[ChatService] Socket.IO unavailable — REST-only mode.', err);
+=======
+      this.socket.on('connect',    () => this.connected$.next(true));
+      this.socket.on('disconnect', () => this.connected$.next(false));
+      this.socket.on('new-message',      (msg: ChatMessage) => this.messages$.next(msg));
+      this.socket.on('user-typing',      (data: any)        => this.typing$.next(data));
+      this.socket.on('user-stop-typing', (data: any)        => this.stopTyping$.next(data));
+    } catch {
+      // Socket.IO not available (SSR or test env) — REST-only mode
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
     }
   }
 
@@ -74,7 +117,10 @@ export class ChatService implements OnDestroy {
     this.socket?.emit('leave-event-chat', { eventId });
   }
 
+<<<<<<< HEAD
   /** Send via socket if connected, otherwise falls back to HTTP in component */
+=======
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
   sendMessage(eventId: string, content: string): void {
     this.socket?.emit('send-message', { eventId, content });
   }

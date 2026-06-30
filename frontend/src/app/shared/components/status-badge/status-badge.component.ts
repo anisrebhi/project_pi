@@ -3,6 +3,7 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'app-status-badge',
   standalone: true,
+<<<<<<< HEAD
   template: `<span class="status-badge" [class]="badgeClass">{{ label }}</span>`,
   styles: [`
     .status-badge {
@@ -27,6 +28,9 @@ import { Component, Input } from '@angular/core';
     :host-context(.dark) .badge-free      { background: rgba(16,185,129,.12); color: #34d399; }
     :host-context(.dark) .badge-paid      { background: rgba(99,102,241,.15); color: var(--brand-300); }
   `],
+=======
+  template: `<span class="badge" [class]="badgeClass">{{ label }}</span>`,
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
 })
 export class StatusBadgeComponent {
   @Input() status: string = '';

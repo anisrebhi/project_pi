@@ -26,6 +26,10 @@ const { generateReservationQRCode } = require('../utils/qrCodeHelper');
 const { sendMail } = require('../utils/emailService');
 const { buildReservationConfirmationEmail } = require('../utils/emailTemplates');
 const { generateReservationTicketPDF } = require('../utils/pdfGenerator');
+<<<<<<< HEAD
+=======
+const { promoteFromWaitlist } = require('../utils/waitlistService');
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
 
 const ok = (res, code, message, data = {}) =>
   res.status(code).json({ success: true, statusCode: code, message, ...data });
@@ -154,10 +158,18 @@ const createReservation = async (req, res, next) => {
       if (numberOfTickets > remaining) {
         const err = new Error(
           remaining === 0
+<<<<<<< HEAD
             ? `This event is fully booked.`
             : `Not enough capacity. Only ${remaining} ticket(s) remaining.`
         );
         err.statusCode = 409;
+=======
+            ? `This event is fully booked. You can join the waitlist.`
+            : `Not enough capacity. Only ${remaining} ticket(s) remaining.`
+        );
+        err.statusCode = 409;
+        err.waitlistAvailable = remaining === 0;
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
         return next(err);
       }
     }
@@ -366,6 +378,16 @@ const cancelReservation = async (req, res, next) => {
       }),
     ]);
 
+<<<<<<< HEAD
+=======
+    // Fire-and-forget: promote next user from waitlist for the freed spots
+    promoteFromWaitlist(
+      reservation.event.toString(),
+      reservation.ticketType || null,
+      reservation.numberOfTickets
+    ).catch((err) => console.error('[Waitlist] Promotion failed after cancellation:', err.message));
+
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
     await reservation.populate([
       { path: 'user',  select: 'fullName email' },
       { path: 'event', select: 'title startDate' },
