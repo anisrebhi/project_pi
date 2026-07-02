@@ -24,7 +24,10 @@ export class RegisterComponent {
   readonly availableRoles: { value: UserRole; label: string }[] = [
     { value: 'PARTICIPANT', label: 'Participant' },
     { value: 'ORGANIZER', label: 'Organisateur' },
+<<<<<<< HEAD
     { value: 'ADMIN', label: 'Administrateur' },
+=======
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   ];
 
   form = this.fb.group({
@@ -67,7 +70,15 @@ export class RegisterComponent {
         next: (res) => {
           this.loading = false;
           this.toast.success(`Compte créé. Bienvenue, ${res.data.user.fullName} !`);
+<<<<<<< HEAD
           const role = res.data.user.role; this.router.navigateByUrl(role === 'ADMIN' || role === 'ORGANIZER' ? '/backoffice' : '/events');
+=======
+<<<<<<< HEAD
+          const role = res.data.user.role; this.router.navigateByUrl(role === 'ADMIN' || role === 'ORGANIZER' ? '/backoffice' : '/events');
+=======
+          this.router.navigateByUrl(res.data.user.role === 'ADMIN' ? '/admin/events' : '/events');
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
         },
         error: (err) => {
           this.loading = false;

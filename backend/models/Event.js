@@ -72,6 +72,7 @@ ticketTypeSchema.pre('validate', function (next) {
   next();
 });
 
+<<<<<<< HEAD
 const attachmentSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
@@ -80,6 +81,8 @@ const attachmentSchema = new mongoose.Schema(
   { _id: false }
 );
 
+=======
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 const eventSchema = new mongoose.Schema(
   {
     title: {
@@ -96,6 +99,7 @@ const eventSchema = new mongoose.Schema(
       default: '',
     },
     location: { type: locationSchema, default: () => ({}) },
+<<<<<<< HEAD
     participationMode: {
       type: String,
       enum: {
@@ -108,6 +112,8 @@ const eventSchema = new mongoose.Schema(
     tags: [{ type: String, trim: true }],
     conditions: { type: String, trim: true, default: '' },
     attachments: { type: [attachmentSchema], default: [] },
+=======
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     startDate: { type: Date, required: [true, 'Start date is required'] },
     endDate:   { type: Date, required: [true, 'End date is required'] },
     category: {
@@ -129,8 +135,12 @@ const eventSchema = new mongoose.Schema(
       required: [true, 'Organizer is required'],
     },
     participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+<<<<<<< HEAD
     isActive:   { type: Boolean, default: true },
     isArchived: { type: Boolean, default: false },
+=======
+    isActive:  { type: Boolean, default: true },
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     deletedAt: { type: Date, default: null },
     type: {
       type: String,
@@ -173,7 +183,11 @@ eventSchema.index({ title: 'text', description: 'text' });
 // ─── Soft Delete Query Middleware ─────────────────────────────────────────────
 eventSchema.pre(/^find/, function (next) {
   if (!this.getOptions().includeSoftDeleted) {
+<<<<<<< HEAD
     this.find({ isActive: { $ne: false }, isArchived: { $ne: true } });
+=======
+    this.find({ isActive: { $ne: false } });
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   }
   next();
 });

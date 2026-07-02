@@ -1,13 +1,33 @@
 /**
  * @file utils/notificationService.js
  * @description Centralised notification dispatcher.
+<<<<<<< HEAD
  * All automated emails (reservation confirmation, 24h reminder, event
  * modification, event cancellation) are triggered here so controllers
  * never import templates and sendMail directly.
+=======
+<<<<<<< HEAD
+ * All automated emails (reservation confirmation, 24h reminder, event
+ * modification, event cancellation) are triggered here so controllers
+ * never import templates and sendMail directly.
+=======
+ * All automated emails (reservation confirmation, waitlist promotion, 24h
+ * reminder, event modification, event cancellation) are triggered here so
+ * controllers never import templates and sendMail directly.
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
  */
 const { sendMail }  = require('./emailService');
 const {
   buildReservationConfirmationEmail,
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+  buildWaitlistConfirmationEmail,
+  buildWaitlistPromotionEmail,
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   buildEventReminderEmail,
   buildEventModifiedEmail,
   buildEventCancelledEmail,
@@ -32,6 +52,26 @@ const notifyReservationConfirmed = (reservation, event, user, qrCodeDataUrl) => 
   return fire('ReservationConfirmed', sendMail({ to: user.email, ...mail }));
 };
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+// ─── Inscription liste d'attente ──────────────────────────────────────────────
+
+const notifyWaitlistJoined = (user, event, entry, position) => {
+  const mail = buildWaitlistConfirmationEmail({ user, event, entry, position });
+  return fire('WaitlistJoined', sendMail({ to: user.email, ...mail }));
+};
+
+// ─── Promotion depuis liste d'attente ─────────────────────────────────────────
+
+const notifyWaitlistPromoted = (user, event, reservation) => {
+  const mail = buildWaitlistPromotionEmail({ user, event, reservation });
+  return fire('WaitlistPromoted', sendMail({ to: user.email, ...mail }));
+};
+
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 // ─── Rappel 24 h avant l'événement ────────────────────────────────────────────
 
 const notifyEventReminder = (user, event, reservation) => {
@@ -55,6 +95,14 @@ const notifyEventCancelled = (user, event) => {
 
 module.exports = {
   notifyReservationConfirmed,
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+  notifyWaitlistJoined,
+  notifyWaitlistPromoted,
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   notifyEventReminder,
   notifyEventModified,
   notifyEventCancelled,

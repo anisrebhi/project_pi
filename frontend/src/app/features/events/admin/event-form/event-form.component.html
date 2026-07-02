@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 <div class="bo-form">
   <div class="bo-form-header">
     <div>
@@ -7,6 +11,20 @@
     </div>
     <a routerLink="/backoffice/events" class="btn btn-secondary">
       <span class="material-icons">arrow_back</span> Retour
+<<<<<<< HEAD
+=======
+=======
+<div class="page page-narrow animate-in">
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">{{ isEditMode ? 'Modifier' : 'Créer' }}</span>
+      <h1>{{ isEditMode ? "Modifier l'événement" : 'Nouvel événement' }}</h1>
+      <p class="subtitle">{{ isEditMode ? 'Mettez à jour les informations de cet événement.' : 'Renseignez les informations du nouvel événement.' }}</p>
+    </div>
+    <a routerLink="/admin/events" class="btn btn-secondary">
+      <span class="material-icons" style="font-size:16px">arrow_back</span> Retour
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     </a>
   </div>
 
@@ -178,7 +196,15 @@
       <p class="helper-text mb-8">Optionnel : définissez plusieurs types de billets (Standard, VIP, Premium, Étudiant) avec des prix différents. Laissez vide pour utiliser le prix unique ci-dessus.</p>
 
       <div formArrayName="ticketTypes">
+<<<<<<< HEAD
         <div *ngFor="let ttGroup of ticketTypesArray.controls; let i = index" [formGroupName]="i" class="ticket-type-card">
+=======
+<<<<<<< HEAD
+        <div *ngFor="let ttGroup of ticketTypesArray.controls; let i = index" [formGroupName]="i" class="ticket-type-card">
+=======
+        <div *ngFor="let ttGroup of ticketTypesArray.controls; let i = index" [formGroupName]="i" class="ticket-type-row card-pad" style="border:1px solid var(--color-border); border-radius:8px; margin-bottom:12px;">
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
           <div class="form-row">
             <div class="field">
               <label>Type *</label>
@@ -258,7 +284,15 @@
         <span class="material-icons" *ngIf="!loading" style="font-size:18px">{{ isEditMode ? 'save' : 'add_circle' }}</span>
         {{ loading ? 'Enregistrement...' : (isEditMode ? 'Enregistrer les modifications' : "Créer l'événement") }}
       </button>
+<<<<<<< HEAD
       <a routerLink="/backoffice/events" class="btn btn-secondary btn-lg">Annuler</a>
+=======
+<<<<<<< HEAD
+      <a routerLink="/backoffice/events" class="btn btn-secondary btn-lg">Annuler</a>
+=======
+      <a routerLink="/admin/events" class="btn btn-secondary btn-lg">Annuler</a>
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     </div>
   </form>
 </div>

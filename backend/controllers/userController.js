@@ -22,12 +22,16 @@ const getAllUsers = async (req, res, next) => {
     const skip  = (page - 1) * limit;
 
     const filter = {};
+<<<<<<< HEAD
     if (req.query.search) {
       filter.$or = [
         { fullName: { $regex: req.query.search, $options: 'i' } },
         { email:    { $regex: req.query.search, $options: 'i' } },
       ];
     }
+=======
+    if (req.query.search) filter.$text = { $search: req.query.search };
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     if (req.query.role)   filter.role  = req.query.role;
 
     const [users, total] = await Promise.all([

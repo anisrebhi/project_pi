@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 .ref-badge {
   font-family: var(--font-mono);
   font-size: .75rem;
@@ -40,3 +44,11 @@ tbody td:last-child {
   width: 60px;
   text-align: center;
 }
+<<<<<<< HEAD
+=======
+=======
+.search-input-wrap { position: relative; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--color-muted); font-size: 18px !important; pointer-events: none; }
+.search-input-wrap input { padding-left: 40px; }
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851

@@ -1,5 +1,12 @@
 const express    = require("express");
+<<<<<<< HEAD
 const fs         = require("fs");
+=======
+<<<<<<< HEAD
+const fs         = require("fs");
+=======
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 const cors       = require("cors");
 const helmet     = require("helmet");
 const morgan     = require("morgan");
@@ -13,6 +20,13 @@ const userRoutes             = require("./routes/userRoutes");
 const eventRoutes            = require("./routes/eventRoutes");
 const reservationRoutes      = require("./routes/reservationRoutes");
 const promoCodeRoutes        = require("./routes/promoCodeRoutes");
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+const waitlistRoutes         = require("./routes/waitlistRoutes");
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 const reclamationRoutes      = require("./routes/reclamationRoutes");
 const formationRoutes        = require("./routes/formationRoutes");
 // ── Lot 2 ──────────────────────────────────────────────────────────────────────
@@ -26,12 +40,21 @@ const { notFoundHandler, globalErrorHandler } = require("./middleware/errorMiddl
 
 const app = express();
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 // ─── Ensure upload directories exist ─────────────────────────────────────────
 ["uploads/events", "uploads/gallery"].forEach((dir) => {
   const full = require("path").join(__dirname, dir);
   if (!fs.existsSync(full)) fs.mkdirSync(full, { recursive: true });
 });
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -93,6 +116,13 @@ app.use("/api/users",           userRoutes);
 app.use("/api/events",          eventRoutes);
 app.use("/api/reservations",    reservationRoutes);
 app.use("/api/promo-codes",     promoCodeRoutes);
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+app.use("/api/waitlist",        waitlistRoutes);
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 app.use("/api/reclamations",    reclamationRoutes);
 app.use("/api/formations",      formationRoutes);
 // ── Lot 2 ─────────────────────────────────────────────────────────────────────

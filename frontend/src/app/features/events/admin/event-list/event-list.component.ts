@@ -1,7 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+<<<<<<< HEAD
 import { Router, RouterLink } from '@angular/router';
+=======
+import { RouterLink } from '@angular/router';
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 import { debounceTime } from 'rxjs';
 
 import { MatButtonModule }   from '@angular/material/button';
@@ -57,7 +61,10 @@ export class AdminEventListComponent implements OnInit {
     private eventService: EventService,
     private toast: ToastService,
     private confirmDialog: ConfirmDialogService,
+<<<<<<< HEAD
     private router: Router,
+=======
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   ) {}
 
   ngOnInit(): void {
@@ -78,6 +85,7 @@ export class AdminEventListComponent implements OnInit {
     if (type)      params.type     = type as EventQueryParams['type'];
 
     this.eventService.list(params).subscribe({
+<<<<<<< HEAD
       next: (res) => {
         this.events = res.data;
         this.pagination = res.pagination ?? null;
@@ -86,6 +94,9 @@ export class AdminEventListComponent implements OnInit {
           this.router.navigateByUrl('/backoffice/events/new');
         }
       },
+=======
+      next: (res) => { this.events = res.data; this.pagination = res.pagination ?? null; this.loading = false; },
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
       error: (err) => { this.loading = false; this.errorMessage = err?.error?.message || 'Impossible de charger les événements.'; },
     });
   }
@@ -108,7 +119,11 @@ export class AdminEventListComponent implements OnInit {
   isPast(event: EventModel): boolean { return new Date(event.endDate || event.startDate).getTime() <= Date.now(); }
 
   fillPct(event: EventModel): number {
+<<<<<<< HEAD
     const count = event._bookedTickets ?? event.participantCount ?? event.participants?.length ?? 0;
+=======
+    const count = event.participantCount ?? event.participants?.length ?? 0;
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     if (!event.capacity) return 0;
     return Math.min(100, Math.round((count / event.capacity) * 100));
   }

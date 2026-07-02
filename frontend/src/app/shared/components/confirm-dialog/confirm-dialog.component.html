@@ -1,5 +1,9 @@
 <div class="confirm-overlay" *ngIf="dialog.active() as req" (click)="dialog.resolve(false)">
   <div class="confirm-box" (click)="$event.stopPropagation()">
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     <div class="confirm-icon-wrap">
       <span class="material-icons confirm-icon" [class.confirm-icon-danger]="req.danger">
         {{ req.danger ? 'warning_amber' : 'help_outline' }}
@@ -9,11 +13,28 @@
     <p>{{ req.message }}</p>
     <div class="confirm-actions">
       <button class="btn btn-ghost" (click)="dialog.resolve(false)">
+<<<<<<< HEAD
+=======
+=======
+    <h3>{{ req.title }}</h3>
+    <p>{{ req.message }}</p>
+    <div class="confirm-actions">
+      <button class="btn btn-secondary" (click)="dialog.resolve(false)">
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
         {{ req.cancelLabel || 'Annuler' }}
       </button>
       <button
         class="btn"
+<<<<<<< HEAD
         [class.btn-danger]="req.danger"
+=======
+<<<<<<< HEAD
+        [class.btn-danger]="req.danger"
+=======
+        [class.btn-danger-solid]="req.danger"
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
         [class.btn-primary]="!req.danger"
         (click)="dialog.resolve(true)"
       >

@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 /* ════════════════════════════════════════════════════════════════════
    User Event List — Catalogue public
 ════════════════════════════════════════════════════════════════════ */
@@ -250,3 +254,29 @@
   .category-strip { gap: 6px; }
   .category-chip { padding: 6px 12px; font-size: .75rem; }
 }
+<<<<<<< HEAD
+=======
+=======
+.search-input-wrap { position: relative; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--color-muted); font-size: 18px !important; pointer-events: none; }
+.search-input-wrap input { padding-left: 40px; }
+
+.category-filters {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+}
+.cat-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 7px 14px; border-radius: 99px;
+  border: 1.5px solid var(--color-line);
+  background: var(--color-surface);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all var(--transition);
+  font-family: var(--font-body); color: var(--color-ink);
+  white-space: nowrap;
+}
+.cat-btn:hover { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-primary-soft); }
+.cat-btn.active { border-color: var(--color-primary); background: var(--color-primary); color: #fff; }
+
+.events-count { margin-top: 4px; }
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851

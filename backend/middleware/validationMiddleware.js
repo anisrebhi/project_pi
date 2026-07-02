@@ -163,6 +163,20 @@ const validateCancelReservation = [
   runValidation,
 ];
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+// ─── Waitlist ─────────────────────────────────────────────────────────────────
+const validateJoinWaitlist = [
+  body("eventId").notEmpty().withMessage("eventId is required").isMongoId().withMessage("eventId must be a valid MongoDB ObjectId"),
+  body("numberOfTickets").optional().isInt({ min: 1, max: 20 }).withMessage("numberOfTickets must be between 1 and 20"),
+  body("ticketType").optional({ nullable: true }).isIn(["Standard", "VIP", "Premium", "Etudiant"]).withMessage("Invalid ticket type"),
+  runValidation,
+];
+
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 // ─── Promo Code ───────────────────────────────────────────────────────────────
 const validateCreatePromoCode = [
   body("code").trim().notEmpty().withMessage("Code is required")
@@ -224,6 +238,13 @@ module.exports = {
   validateCancelReservation,
   validateCreatePromoCode,
   validateUpdatePromoCode,
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+  validateJoinWaitlist,
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   validateMongoId,
   validatePagination,
   validateQueryParams,

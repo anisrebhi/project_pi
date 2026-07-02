@@ -1,13 +1,30 @@
 import { Component, OnInit, signal } from '@angular/core';
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 import { CommonModule, DatePipe }    from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule }               from '@angular/forms';
 import { CertificateService }        from '../../core/services/certificate.service';
 import { CertificateVerification }   from '../../core/models/lot2.models';
+<<<<<<< HEAD
+=======
+=======
+import { CommonModule, DatePipe } from '@angular/common';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import { CertificateService } from '../../core/services/certificate.service';
+import { CertificateVerification } from '../../core/models/lot2.models';
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 
 @Component({
   selector: 'app-verify-certificate',
   standalone: true,
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   imports: [CommonModule, RouterModule, DatePipe, FormsModule],
   template: `
 <div class="verify-page">
@@ -121,11 +138,60 @@ import { CertificateVerification }   from '../../core/models/lot2.models';
       <a routerLink="/events" class="btn btn-ghost btn-sm">
         <span class="material-icons">event</span> Événements
       </a>
+<<<<<<< HEAD
+=======
+=======
+  imports: [CommonModule, RouterModule, DatePipe],
+  template: `
+<div class="verify-page">
+  <div class="verify-card">
+    <div *ngIf="loading()" class="state-block">
+      <div class="spinner"></div>
+      <p>Vérification en cours…</p>
+    </div>
+
+    <div *ngIf="!loading() && result()" class="state-block valid">
+      <div class="check-icon">✅</div>
+      <h2>Certificat Valide</h2>
+      <div class="result-grid">
+        <div class="result-item">
+          <span class="label">Titulaire</span>
+          <span class="value">{{ result()!.holder }}</span>
+        </div>
+        <div class="result-item">
+          <span class="label">Événement</span>
+          <span class="value">{{ result()!.event }}</span>
+        </div>
+        <div class="result-item">
+          <span class="label">Date de l'événement</span>
+          <span class="value">{{ result()!.eventDate | date:'dd MMMM yyyy':'':'fr' }}</span>
+        </div>
+        <div class="result-item">
+          <span class="label">Émis le</span>
+          <span class="value">{{ result()!.issuedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!loading() && error()" class="state-block invalid">
+      <div class="x-icon">❌</div>
+      <h2>Certificat Invalide</h2>
+      <p>Ce certificat n'existe pas ou a été révoqué.</p>
+    </div>
+
+    <div class="verify-footer">
+      <a routerLink="/" class="btn btn-outline">← Retour à l'accueil</a>
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     </div>
   </div>
 </div>
   `,
   styles: [`
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     .verify-page {
       min-height: 100vh; display: flex; align-items: center; justify-content: center;
       padding: var(--space-6); background: var(--color-bg);
@@ -256,6 +322,30 @@ export class VerifyCertificateComponent implements OnInit {
   error    = signal(false);
   verifying = signal(false);
   manualCode = '';
+<<<<<<< HEAD
+=======
+=======
+    .verify-page { min-height:80vh; display:flex; align-items:center; justify-content:center; padding:2rem; background:#f8fafc; }
+    .verify-card { background:#fff; border-radius:20px; padding:3rem 2.5rem; max-width:520px; width:100%; box-shadow:0 8px 32px rgba(0,0,0,.1); text-align:center; }
+    .spinner { width:48px; height:48px; border:4px solid #e2e8f0; border-top-color:#6366f1; border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 1.5rem; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .check-icon,.x-icon { font-size:4rem; margin-bottom:1rem; }
+    .valid h2 { color:#059669; } .invalid h2 { color:#dc2626; }
+    .result-grid { text-align:left; margin:1.5rem 0; display:grid; gap:.75rem; }
+    .result-item { background:#f8fafc; border-radius:10px; padding:.75rem 1rem; }
+    .label { display:block; font-size:.75rem; color:#94a3b8; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.25rem; }
+    .value { font-size:1rem; color:#1e293b; font-weight:600; }
+    .verify-footer { margin-top:2rem; }
+    .btn { padding:.6rem 1.5rem; border-radius:10px; border:none; cursor:pointer; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; }
+    .btn-outline { border:1.5px solid #6366f1; color:#6366f1; background:transparent; } .btn-outline:hover { background:#ede9fe; }
+  `],
+})
+export class VerifyCertificateComponent implements OnInit {
+  result  = signal<CertificateVerification | null>(null);
+  loading = signal(true);
+  error   = signal(false);
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 
   constructor(
     private route: ActivatedRoute,
@@ -263,6 +353,10 @@ export class VerifyCertificateComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     const code = this.route.snapshot.paramMap.get('code');
     if (code) {
       this.manualCode = code;
@@ -290,4 +384,15 @@ export class VerifyCertificateComponent implements OnInit {
   statusLabel(s: string): string {
     return ({ pending: 'En attente', validated: 'Validé', sent: 'Envoyé par email', downloaded: 'Téléchargé' } as any)[s] || s;
   }
+<<<<<<< HEAD
+=======
+=======
+    const code = this.route.snapshot.paramMap.get('code') || '';
+    this.certService.verify(code).subscribe({
+      next: (res) => { this.result.set(res.data); this.loading.set(false); },
+      error: ()    => { this.error.set(true); this.loading.set(false); },
+    });
+  }
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 }

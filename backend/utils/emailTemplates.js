@@ -38,6 +38,36 @@ const buildReservationConfirmationEmail = ({ reservation, user, event, qrCodeDat
   return { subject, html, text, attachments };
 };
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+// ─── Waitlist Confirmation ────────────────────────────────────────────────────
+const buildWaitlistConfirmationEmail = ({ user, event, entry, position }) => {
+  const subject = `Inscription sur liste d'attente — ${event.title}`;
+  const html = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+    <h2>📋 Vous êtes sur la liste d'attente</h2>
+    <p>Bonjour ${user.fullName || ''},</p>
+    <p>L'événement <strong>${event.title}</strong> est complet. Vous êtes en position <strong>#${position}</strong>.</p>
+    <p style="color:#999;font-size:12px">Email automatique.</p>
+  </div>`;
+  return { subject, html, text: `Liste d'attente: ${event.title}, position #${position}`, attachments: [] };
+};
+
+// ─── Waitlist Promotion ───────────────────────────────────────────────────────
+const buildWaitlistPromotionEmail = ({ user, event, reservation }) => {
+  const subject = `🎉 Une place est disponible — ${event.title}`;
+  const html = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+    <h2>🎉 Votre place est confirmée !</h2>
+    <p>Bonjour ${user.fullName || ''},</p>
+    <p>Votre réservation pour <strong>${event.title}</strong> est maintenant confirmée. Réf: ${reservation._id}</p>
+    <p style="color:#999;font-size:12px">Email automatique.</p>
+  </div>`;
+  return { subject, html, text: `Place confirmée pour ${event.title}. Réf: ${reservation._id}`, attachments: [] };
+};
+
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 // ─── Event Reminder ───────────────────────────────────────────────────────────
 const buildEventReminderEmail = ({ user, event, reservation }) => {
   const subject = `⏰ Rappel — ${event.title} commence demain`;
@@ -125,6 +155,14 @@ const buildNewPhotosEmail = ({ user, event, count }) => {
 
 module.exports = {
   buildReservationConfirmationEmail,
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+  buildWaitlistConfirmationEmail,
+  buildWaitlistPromotionEmail,
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   buildEventReminderEmail,
   buildEventModifiedEmail,
   buildEventCancelledEmail,

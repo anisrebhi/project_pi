@@ -8,8 +8,19 @@ const EventPhoto  = require('../models/EventPhoto');
 const Event       = require('../models/Event');
 const Reservation = require('../models/Reservation');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
+<<<<<<< HEAD
 const { sendMail: sendEmail } = require('../utils/emailService');
 const { buildNewPhotosEmail } = require('../utils/emailTemplates');
+=======
+<<<<<<< HEAD
+const { sendMail: sendEmail } = require('../utils/emailService');
+const { buildNewPhotosEmail } = require('../utils/emailTemplates');
+=======
+const { sendEmail } = require('../utils/emailService');
+const { buildNewPhotosEmail } = require('../utils/emailTemplates');
+const { User }    = require('../models/User');
+>>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 
 /** POST /api/photos/:eventId — Organizer uploads photos */
 const uploadPhotos = async (req, res) => {
@@ -50,9 +61,26 @@ const uploadPhotos = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 /** GET /api/photos/:eventId — Get gallery (public) */
 const getPhotos = async (req, res) => {
   try {
+=======
+/** GET /api/photos/:eventId — Get gallery (confirmed participants, organizer, admin) */
+const getPhotos = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.eventId);
+    if (!event) return sendError(res, 404, 'Événement introuvable');
+
+    // Authorization check
+    const isOrganizer = event.organizer.toString() === req.user._id.toString();
+    const isAdmin     = req.user.role === 'ADMIN';
+    if (!isOrganizer && !isAdmin) {
+      const reservation = await Reservation.findOne({ event: event._id, user: req.user._id, status: 'confirmed' });
+      if (!reservation) return sendError(res, 403, 'Accès réservé aux participants confirmés');
+    }
+
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     const photos = await EventPhoto.find({ event: req.params.eventId })
       .populate('uploadedBy', 'fullName')
       .sort({ createdAt: -1 });

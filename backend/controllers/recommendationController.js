@@ -6,6 +6,7 @@ const Event       = require('../models/Event');
 const Reservation = require('../models/Reservation');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
+<<<<<<< HEAD
 /** GET /api/events/:id/similar — Public: similar events based on category, type, or keywords */
 const getSimilarEvents = async (req, res) => {
   try {
@@ -55,6 +56,26 @@ const getSimilarEvents = async (req, res) => {
     });
 
     return sendSuccess(res, 200, 'Événements similaires', { events: enriched });
+=======
+/** GET /api/events/:id/similar — Public: similar events based on category */
+const getSimilarEvents = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return sendError(res, 404, 'Événement introuvable');
+
+    const similar = await Event.find({
+      _id:      { $ne: event._id },
+      category: event.category,
+      isActive: true,
+      endDate:  { $gte: new Date() },
+    })
+      .populate('organizer', 'fullName')
+      .select('title description startDate endDate location category images organizer capacity participants')
+      .limit(6)
+      .sort({ startDate: 1 });
+
+    return sendSuccess(res, 200, 'Événements similaires', { events: similar });
+>>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   } catch (err) {
     return sendError(res, 500, 'Erreur');
   }
