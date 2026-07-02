@@ -1,0 +1,59 @@
+<div class="reviews-section" *ngIf="showSection">
+  <div class="reviews-header">
+    <div class="reviews-header-left">
+      <h2>Avis et Évaluations</h2>
+    </div>
+    <div class="avg-badge" *ngIf="total() > 0">
+      <span class="avg-score">{{ avgRating() }}</span>
+      <div class="avg-detail">
+        <div class="stars-display">{{ starString(avgRating()) }}</div>
+        <span class="total-label">{{ total() }} avis</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="write-review" *ngIf="canReview && auth.isAuthenticated()">
+    <h3>{{ myReview() ? 'Modifier mon avis' : 'Laisser un avis' }}</h3>
+    <div class="star-picker">
+      <span *ngFor="let s of [1,2,3,4,5]"
+            class="star" [class.active]="newRating() >= s"
+            (click)="newRating.set(s)"
+            (mouseenter)="hoverRating.set(s)"
+            (mouseleave)="hoverRating.set(0)"
+            [class.hover]="hoverRating() >= s">★</span>
+    </div>
+    <textarea [(ngModel)]="newComment" rows="3" placeholder="Partagez votre expérience…" class="review-textarea"></textarea>
+    <button class="btn btn-primary" (click)="submitReview()" [disabled]="newRating() === 0 || submitting()">
+      {{ submitting() ? 'Envoi…' : (myReview() ? 'Mettre à jour' : 'Publier') }}
+    </button>
+    <p class="review-error" *ngIf="submitError()">{{ submitError() }}</p>
+  </div>
+
+  <div *ngIf="loading()" class="loading-mini"><div class="spinner-sm"></div></div>
+
+  <div *ngIf="!loading() && total() === 0" class="empty-reviews">
+    <span class="material-icons empty-reviews-icon">rate_review</span>
+    <p class="empty-reviews-title">Aucun avis pour le moment</p>
+    <p class="empty-reviews-sub" *ngIf="canReview && auth.isAuthenticated()">Soyez le premier à partager votre expérience&nbsp;!</p>
+    <button *ngIf="canReview && auth.isAuthenticated()" class="btn btn-primary" (click)="scrollToForm()">
+      <span class="material-icons">edit</span> Laisser un avis
+    </button>
+  </div>
+
+  <div class="reviews-list" *ngIf="!loading()">
+    <div *ngFor="let review of reviews()" class="review-item">
+      <div class="review-top">
+        <div class="reviewer-avatar">{{ getInitial(review.user.fullName) }}</div>
+        <div class="reviewer-info">
+          <strong>{{ review.user.fullName || 'Participant' }}</strong>
+          <span class="review-date">{{ review.createdAt | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div class="review-stars">{{ starString(review.rating) }}</div>
+        <button *ngIf="canDelete(review)" class="delete-btn" (click)="deleteReview(review._id)">
+          <span class="material-icons">delete</span>
+        </button>
+      </div>
+      <p class="review-comment" *ngIf="review.comment">{{ review.comment }}</p>
+    </div>
+  </div>
+</div>

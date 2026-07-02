@@ -1,0 +1,49 @@
+<div class="auth-page">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo">
+          <div class="auth-logo-icon">EP</div>
+        </div>
+        <h1 class="auth-title">Bienvenue</h1>
+        <p class="auth-subtitle">Connectez-vous à votre compte EventPass</p>
+      </div>
+
+      <div class="alert alert-error" *ngIf="serverError">{{ serverError }}</div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="field">
+          <label for="email">Adresse email</label>
+          <input
+            id="email" type="email" formControlName="email"
+            [class.invalid]="f['email'].invalid && f['email'].touched"
+            placeholder="vous@exemple.com" autocomplete="email">
+          <span class="error-text" *ngIf="f['email'].touched && f['email'].errors?.['required']">L'email est requis.</span>
+          <span class="error-text" *ngIf="f['email'].touched && f['email'].errors?.['email']">Veuillez saisir une adresse email valide.</span>
+        </div>
+
+        <div class="field">
+          <label for="password">Mot de passe</label>
+          <input
+            id="password" type="password" formControlName="password"
+            [class.invalid]="f['password'].invalid && f['password'].touched"
+            placeholder="••••••••" autocomplete="current-password">
+          <span class="error-text" *ngIf="f['password'].touched && f['password'].errors?.['required']">Le mot de passe est requis.</span>
+          <span class="error-text" *ngIf="f['password'].touched && f['password'].errors?.['minlength']">Minimum 6 caractères.</span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" [disabled]="loading">
+          <span class="spinner" *ngIf="loading"></span>
+          {{ loading ? 'Connexion...' : 'Se connecter' }}
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <span>Pas encore de compte ?</span>
+        <a routerLink="/register" class="auth-link">Créer un compte</a>
+      </div>
+    </div>
+
+    <div class="auth-bg"></div>
+  </div>
+</div>

@@ -1,0 +1,69 @@
+<div class="bo-page">
+
+  <div class="bo-page-header">
+    <div>
+      <span class="bo-eyebrow">Administration</span>
+      <h1 *ngIf="event">{{ event.title }}</h1>
+      <h1 *ngIf="!event && loading">Chargement…</h1>
+    </div>
+    <div class="bo-header-actions">
+      <a routerLink="/backoffice/events" class="btn btn-outline">
+        <span class="material-icons">arrow_back</span> Retour
+      </a>
+      <a *ngIf="event" [routerLink]="['/backoffice/events', event._id, 'edit']" class="btn btn-secondary">
+        <span class="material-icons">edit</span> Modifier
+      </a>
+    </div>
+  </div>
+
+  <div class="alert alert-error" *ngIf="error">{{ error }}</div>
+  <div class="spinner-center" *ngIf="loading"><span class="spinner spinner-lg"></span></div>
+
+  <div class="ed-info-grid" *ngIf="!loading && !error && event">
+
+    <div class="ed-card">
+      <div class="ed-card-header">
+        <span class="material-icons">person</span>
+        <h2>Organisateur</h2>
+      </div>
+      <div class="ed-info-value">{{ organizerName() }}</div>
+    </div>
+
+    <div class="ed-card">
+      <div class="ed-card-header">
+        <span class="material-icons">calendar_today</span>
+        <h2>Date</h2>
+      </div>
+      <div class="ed-info-value">
+        <div>Du {{ event.startDate | date:'dd/MM/yyyy' }} à {{ event.startDate | date:'HH:mm' }}</div>
+        <div>Au {{ event.endDate | date:'dd/MM/yyyy' }} à {{ event.endDate | date:'HH:mm' }}</div>
+      </div>
+    </div>
+
+    <div class="ed-card">
+      <div class="ed-card-header">
+        <span class="material-icons">space_dashboard</span>
+        <h2>Capacité maximale</h2>
+      </div>
+      <div class="ed-info-value">{{ event.capacity ? (event.capacity + ' places') : 'Non renseigné' }}</div>
+    </div>
+
+    <div class="ed-card">
+      <div class="ed-card-header">
+        <span class="material-icons">location_on</span>
+        <h2>Lieu</h2>
+      </div>
+      <div class="ed-info-value">{{ event.location?.address || 'Non renseigné' }}</div>
+    </div>
+
+    <div class="ed-card">
+      <div class="ed-card-header">
+        <span class="material-icons">email</span>
+        <h2>Email organisateur</h2>
+      </div>
+      <div class="ed-info-value">{{ organizerEmail() || 'Non renseigné' }}</div>
+    </div>
+
+  </div>
+
+</div>

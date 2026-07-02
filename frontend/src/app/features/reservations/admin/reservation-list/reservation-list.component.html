@@ -1,0 +1,103 @@
+<div class="page page-wide">
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">Administration</span>
+      <h1>Toutes les réservations</h1>
+      <p class="subtitle">Vue complète de toutes les réservations effectuées sur la plateforme.</p>
+    </div>
+  </div>
+
+  <form [formGroup]="filters" class="filters-bar">
+    <div class="field" style="margin-bottom:0; flex:2; min-width:220px">
+      <label for="search">Rechercher</label>
+      <div class="search-input-wrap">
+        <span class="material-icons search-icon">search</span>
+        <input id="search" type="text" formControlName="search" placeholder="Nom, email, titre d'événement...">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:0; flex:1; min-width:160px">
+      <label for="status">Statut</label>
+      <select id="status" formControlName="status">
+        <option value="">Tous les statuts</option>
+        <option value="confirmed">Confirmée</option>
+        <option value="pending">En attente</option>
+        <option value="cancelled">Annulée</option>
+      </select>
+    </div>
+  </form>
+
+  <div class="alert alert-error mt-16" *ngIf="errorMessage">
+    <span class="material-icons">error_outline</span>
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <div class="spinner-center" *ngIf="loading"><span class="spinner spinner-lg"></span></div>
+
+  <ng-container *ngIf="!loading && !errorMessage">
+    <div class="table-wrap mt-16 animate-in" *ngIf="visibleReservations.length > 0; else empty">
+      <table>
+        <thead>
+          <tr>
+            <th>Référence</th>
+            <th>Participant</th>
+            <th>Événement</th>
+            <th>Billets</th>
+            <th>Montant</th>
+            <th>Statut</th>
+            <th>Réservée le</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let reservation of visibleReservations">
+            <td>
+              <span class="ref-badge">#{{ reservation._id.slice(-8) }}</span>
+            </td>
+            <td>
+              <div class="cell-strong">{{ asUser(reservation).fullName }}</div>
+              <div class="cell-muted text-sm">{{ asUser(reservation).email }}</div>
+            </td>
+            <td>
+              <div class="cell-strong">{{ asEvent(reservation).title }}</div>
+              <div class="cell-muted text-sm">{{ asEvent(reservation).startDate | date: 'dd/MM/yyyy HH:mm' }}</div>
+            </td>
+            <td>
+              <span class="badge badge-primary">{{ reservation.numberOfTickets }} billets</span>
+            </td>
+            <td class="cell-price">{{ reservation.totalPrice }} DT</td>
+            <td><app-status-badge [status]="reservation.status"></app-status-badge></td>
+            <td class="cell-muted text-sm">{{ reservation.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <button class="btn btn-ghost btn-sm" *ngIf="reservation.status !== 'cancelled'" (click)="cancelReservation(reservation)">
+                <span class="material-icons">cancel</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #empty>
+      <div class="state-block mt-16">
+        <span class="state-icon">🗂️</span>
+        <h3>Aucune réservation trouvée</h3>
+        <p>Ajustez vos filtres pour afficher d'autres résultats.</p>
+      </div>
+    </ng-template>
+
+    <div class="flex-between mt-8" *ngIf="pagination && pagination.totalPages > 1">
+      <span class="text-sm muted">
+        Page {{ pagination.currentPage }} / {{ pagination.totalPages }} — {{ pagination.total }} réservation(s)
+      </span>
+      <div class="pagination">
+        <button class="page-btn" [disabled]="!pagination.hasPrevPage" (click)="goToPage(page - 1)">
+          <span class="material-icons">chevron_left</span>
+        </button>
+        <span class="page-info">{{ pagination.currentPage }}</span>
+        <button class="page-btn" [disabled]="!pagination.hasNextPage" (click)="goToPage(page + 1)">
+          <span class="material-icons">chevron_right</span>
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</div>

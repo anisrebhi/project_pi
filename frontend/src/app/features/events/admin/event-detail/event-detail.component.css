@@ -1,0 +1,35 @@
+:host { display: block; }
+.bo-page { padding: 4px; }
+.bo-page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.bo-eyebrow { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--color-primary); font-weight: 700; }
+.bo-page-header h1 { font-size: 1.5rem; font-weight: 800; color: var(--color-ink); margin: 2px 0 4px; }
+.bo-header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.ed-info-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.ed-card {
+  background: var(--color-surface); border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg); padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+:host-context(.dark) .ed-card { background: var(--dark-surface, #1e293b); border-color: var(--dark-line, #334155); }
+.ed-card-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.ed-card-header .material-icons { font-size: 18px; color: var(--color-muted); }
+.ed-card-header h2 {
+  font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--color-muted); margin: 0;
+}
+.ed-info-value {
+  font-size: .95rem; color: var(--color-ink); line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .bo-page-header { flex-direction: column; }
+  .bo-header-actions { width: 100%; }
+  .bo-header-actions .btn { flex: 1; justify-content: center; }
+}

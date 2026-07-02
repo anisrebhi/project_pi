@@ -1,0 +1,76 @@
+<div class="bo-page">
+  <div class="bo-page-header">
+    <div>
+      <span class="bo-eyebrow">Administration</span>
+      <h1>Événements</h1>
+      <p>Créez, modifiez et gérez tous les événements.</p>
+    </div>
+    <a routerLink="/backoffice/events/new" class="btn btn-primary">
+      <span class="material-icons">add</span> Nouvel événement
+    </a>
+  </div>
+
+  <form [formGroup]="filters" class="bo-filters">
+    <div class="search-field">
+      <span class="material-icons search-icon">search</span>
+      <input type="text" formControlName="search" placeholder="Rechercher…">
+    </div>
+    <select formControlName="category" class="bo-select">
+      <option *ngFor="let c of categories" [value]="c.value">{{ c.emoji }} {{ c.label }}</option>
+    </select>
+    <select formControlName="type" class="bo-select">
+      <option value="">Tous</option>
+      <option value="free">Gratuit</option>
+      <option value="paid">Payant</option>
+    </select>
+  </form>
+
+  <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="spinner-center" *ngIf="loading"><span class="spinner spinner-lg"></span></div>
+
+  <ng-container *ngIf="!loading && !errorMessage">
+    <div class="bo-grid" *ngIf="events.length > 0">
+      <div class="bo-event-card" *ngFor="let event of events">
+        <div class="bo-card-img">
+          <img *ngIf="getEventImageUrl(event)" [src]="getEventImageUrl(event)" [alt]="event.title">
+          <div *ngIf="!getEventImageUrl(event)" class="bo-card-placeholder">{{ getCategoryEmoji(event.category) }}</div>
+          <div class="bo-card-status">
+            <span class="bo-status bo-status-past" *ngIf="isPast(event)">Passé</span>
+            <span class="bo-status bo-status-active" *ngIf="!isPast(event) && event.isActive">Actif</span>
+            <span class="bo-status bo-status-disabled" *ngIf="!event.isActive">Désactivé</span>
+          </div>
+        </div>
+        <div class="bo-card-body">
+          <div class="bo-card-chips">
+            <span class="bo-chip bo-chip-cat">{{ getCategoryEmoji(event.category) }} {{ getCategoryLabel(event.category) }}</span>
+            <span class="bo-chip" [class]="event.type === 'paid' ? 'bo-chip-paid' : 'bo-chip-free'">{{ event.type === 'paid' ? (event.price + ' DT') : 'Gratuit' }}</span>
+          </div>
+          <h3 class="bo-card-title">{{ event.title }}</h3>
+          <div class="bo-card-meta">
+            <span class="material-icons">calendar_today</span>
+            <span>{{ event.startDate | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="bo-capacity">
+            <div class="bo-cap-header"><span>{{ event.participantCount ?? event.participants.length }} / {{ event.capacity }}</span><span>{{ fillPct(event) }}%</span></div>
+            <div class="bo-cap-track"><div class="bo-cap-fill" [class.warn]="fillPct(event) >= 70 && fillPct(event) < 90" [class.danger]="fillPct(event) >= 90" [style.width.%]="fillPct(event)"></div></div>
+          </div>
+        </div>
+        <div class="bo-card-actions">
+          <a class="btn btn-primary btn-sm" [routerLink]="['/backoffice/events', event._id]"><span class="material-icons">visibility</span> Afficher</a>
+          <a class="btn btn-secondary btn-sm" [routerLink]="['/backoffice/events', event._id, 'edit']"><span class="material-icons">edit</span> Modifier</a>
+          <button class="btn btn-danger btn-sm" (click)="deleteEvent(event)"><span class="material-icons">delete</span> Supprimer</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bo-pagination" *ngIf="pagination && pagination.totalPages > 1">
+      <span class="bo-page-info">{{ pagination.total }} événement(s) — Page {{ pagination.currentPage }} / {{ pagination.totalPages }}</span>
+      <div class="bo-page-btns">
+        <button class="page-btn" [disabled]="!pagination.hasPrevPage" (click)="goToPage(page - 1)"><span class="material-icons">chevron_left</span></button>
+        <button class="page-btn" *ngFor="let p of pages" [class.active]="p === pagination.currentPage" (click)="goToPage(p)">{{ p }}</button>
+        <button class="page-btn" [disabled]="!pagination.hasNextPage" (click)="goToPage(page + 1)"><span class="material-icons">chevron_right</span></button>
+      </div>
+    </div>
+  </ng-container>
+</div>

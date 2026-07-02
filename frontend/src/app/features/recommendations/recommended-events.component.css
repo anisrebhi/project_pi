@@ -1,0 +1,214 @@
+:host {
+  display: block;
+}
+
+.reco-section {
+  margin: var(--space-8) 0;
+}
+
+.reco-header {
+  margin-bottom: var(--space-6);
+}
+
+.reco-header-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.reco-header h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.reco-sparkle {
+  font-size: 1.25rem !important;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.reco-basis {
+  color: var(--color-muted);
+  font-size: .875rem;
+  margin: var(--space-2) 0 0;
+}
+
+.cat-pill {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.reco-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-5);
+}
+
+.reco-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-line);
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition: all var(--duration-base) var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-card);
+}
+
+.reco-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--brand-300);
+}
+
+.reco-card-img {
+  aspect-ratio: 16 / 9;
+  position: relative;
+  overflow: hidden;
+  background: var(--gray-100);
+}
+
+.reco-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .3s var(--ease-out);
+}
+
+.reco-card:hover .reco-card-img img {
+  transform: scale(1.06);
+}
+
+.reco-card-img-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: linear-gradient(135deg, var(--brand-50), var(--brand-100));
+}
+
+.reco-card-img-placeholder .material-icons {
+  font-size: 2.5rem;
+  color: var(--color-primary);
+}
+
+.reco-badge {
+  position: absolute;
+  top: .75rem;
+  right: .75rem;
+  background: var(--color-success);
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 700;
+  padding: .25rem .65rem;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.reco-card-body {
+  padding: var(--space-5);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.reco-category {
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.reco-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.reco-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+}
+
+.reco-meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: .78rem;
+  color: var(--color-muted);
+}
+
+.reco-meta-item .material-icons {
+  font-size: 14px;
+}
+
+.reco-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-line);
+}
+
+.reco-price {
+  font-weight: 700;
+  color: var(--color-primary);
+  font-size: .95rem;
+}
+
+.reco-price.free {
+  color: var(--color-success);
+}
+
+.reco-spots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .75rem;
+  color: var(--color-muted);
+}
+
+.reco-spots .material-icons {
+  font-size: 14px;
+}
+
+:host-context(.dark) .reco-card {
+  background: var(--dark-surface);
+  border-color: var(--dark-line);
+}
+
+:host-context(.dark) .reco-card:hover {
+  border-color: var(--brand-500);
+}
+
+:host-context(.dark) .reco-card-img-placeholder {
+  background: linear-gradient(135deg, rgba(99, 102, 241, .15), rgba(99, 102, 241, .05));
+}
+
+:host-context(.dark) .reco-footer {
+  border-color: var(--dark-line);
+}
+
+@media (max-width: 600px) {
+  .reco-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}

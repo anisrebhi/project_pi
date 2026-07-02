@@ -1,0 +1,340 @@
+<div class="detail-page">
+
+  <!-- ═══ LOADING ═══ -->
+  @if (loading) {
+    <div class="detail-loading"><span class="spinner"></span></div>
+  }
+
+  <!-- ═══ ERROR ═══ -->
+  @if (errorMessage) {
+    <div class="detail-error">
+      <span class="material-icons">error_outline</span>
+      <p>{{ errorMessage }}</p>
+      <button routerLink="/events" class="btn btn-sm">Retour aux événements</button>
+    </div>
+  }
+
+  <!-- ═══ CONTENT ═══ -->
+  @if (event && !loading) {
+    <div class="detail-container">
+
+      <!-- Back -->
+      <a routerLink="/events" class="back-link">
+        <span class="material-icons">arrow_back</span> Retour
+      </a>
+
+      <!-- ============================================================
+           HERO
+           ============================================================ -->
+      <section class="detail-hero">
+        @if (getEventImageUrl(event)) {
+          <img [src]="getEventImageUrl(event)" [alt]="event.title" class="detail-hero-img" />
+        } @else {
+          <div class="detail-hero-placeholder">
+            <span class="material-icons">event</span>
+          </div>
+        }
+        <div class="detail-hero-overlay">
+          <div class="detail-hero-content">
+            <div class="detail-hero-chips">
+              <span class="chip chip-cat">{{ getCategoryLabel(event.category) }}</span>
+              @if (event.type === 'paid') {
+                <span class="chip chip-paid">Payant</span>
+              } @else {
+                <span class="chip chip-free">Gratuit</span>
+              }
+              @if (isPast) {
+                <span class="chip chip-past">Passé</span>
+              } @else if (isFull) {
+                <span class="chip chip-full">Complet</span>
+              }
+              @if (event.status === 'cancelled') {
+                <span class="chip chip-past">Annulé</span>
+              }
+            </div>
+            <h1 class="detail-title">{{ event.title }}</h1>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           MAIN LAYOUT
+           ============================================================ -->
+      <div class="detail-grid">
+
+        <!-- ─── LEFT COLUMN ─────────────────────────────────────────── -->
+        <div class="detail-main">
+
+          <!-- Info Cards Row -->
+          <div class="info-cards">
+
+            <!-- Date -->
+            <div class="info-card">
+              <span class="material-icons info-card-icon">calendar_today</span>
+              <div class="info-card-body">
+                <span class="info-card-label">Date</span>
+                <span class="info-card-value">{{ event.startDate | date:'EEEE d MMMM y' }}</span>
+                @if (event.startDate !== event.endDate) {
+                  <span class="info-card-sub">→ {{ event.endDate | date:'EEEE d MMMM y' }}</span>
+                }
+                <span class="info-card-sub">{{ event.startDate | date:'HH:mm' }} - {{ event.endDate | date:'HH:mm' }}</span>
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="info-card">
+              <span class="material-icons info-card-icon">location_on</span>
+              <div class="info-card-body">
+                <span class="info-card-label">Lieu</span>
+                @if (locationAddress) {
+                  <span class="info-card-value">{{ locationAddress }}</span>
+                } @else {
+                  <span class="info-card-value muted">Non renseigné</span>
+                }
+              </div>
+            </div>
+
+            <!-- Organizer -->
+            @if (organizerName) {
+              <div class="info-card">
+                <span class="material-icons info-card-icon">person</span>
+                <div class="info-card-body">
+                  <span class="info-card-label">Organisé par</span>
+                  <span class="info-card-value">{{ organizerName }}</span>
+                  @if (organizerEmail) {
+                    <span class="info-card-sub">{{ organizerEmail }}</span>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Category / Type -->
+            <div class="info-card">
+              <span class="material-icons info-card-icon">sell</span>
+              <div class="info-card-body">
+                <span class="info-card-label">Catégorie</span>
+                <span class="info-card-value">{{ getCategoryLabel(event.category) }}</span>
+                @if (event.type === 'paid') {
+                  <span class="info-card-sub">{{ event.price | currency:'EUR' }}</span>
+                } @else {
+                  <span class="info-card-sub">Gratuit</span>
+                }
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Description -->
+          @if (event.description) {
+            <section class="detail-section">
+              <h2 class="detail-section-title">À propos</h2>
+              <p class="detail-desc">{{ event.description }}</p>
+            </section>
+          }
+
+          <!-- Map -->
+          @if (event.location?.latitude && event.location?.longitude) {
+            <section class="detail-section">
+              <h2 class="detail-section-title">Localisation</h2>
+              <div #mapDiv class="detail-map"></div>
+            </section>
+          }
+
+        </div>
+
+        <!-- ─── RIGHT COLUMN ────────────────────────────────────────── -->
+        <div class="detail-side">
+
+          <!-- Capacity bar -->
+          @if (event.capacity) {
+            <div class="capacity-block">
+              <div class="capacity-header">
+                <span>Places</span>
+                <span>{{ event.capacity }} places</span>
+              </div>
+              <div class="capacity-track">
+                <div class="capacity-fill"
+                     [class.warn]="fillPct() <= 30 && fillPct() > 10"
+                     [class.danger]="fillPct() <= 10"
+                     [style.width.%]="fillPct()">
+                </div>
+              </div>
+              <div class="capacity-stats">
+                @if (fillPct() > 0) {
+                  <span class="spots-left">{{ spotsLeft }} place{{ spotsLeft > 1 ? 's' : '' }} restante{{ spotsLeft > 1 ? 's' : '' }}</span>
+                } @else {
+                  <span class="spots-left danger">Complet</span>
+                }
+                <span class="capacity-pct">{{ spotsLeft }}/{{ event.capacity }}</span>
+              </div>
+            </div>
+          }
+
+          <!-- Reservation Card -->
+          <div class="reservation-card">
+
+            <!-- Price -->
+            <div class="price-box">
+              <span>Prix</span>
+              @if (event.type === 'paid') {
+                <span class="price-amount">{{ totalPrice | currency:'EUR' }}</span>
+              } @else {
+                <span class="price-amount free">Gratuit</span>
+              }
+            </div>
+
+            <!-- Mode: loading -->
+            @if (sidebarMode === 'loading') {
+              <div class="sidebar-loading">
+                <span class="spinner spinner-sm"></span> Chargement…
+              </div>
+            }
+
+            <!-- Mode: past -->
+            @if (sidebarMode === 'past') {
+              <div class="past-notice">
+                <span class="material-icons">history</span>
+                <span>Cet événement a déjà eu lieu.</span>
+              </div>
+            }
+
+            <!-- Mode: full -->
+            @if (sidebarMode === 'full') {
+              <div class="wl-full-banner">
+                <div class="wl-full-icon"><span class="material-icons">groups</span></div>
+                <p class="wl-full-text">
+                  <strong>Événement complet</strong><br />
+                  Toutes les places ont été réservées.
+                </p>
+              </div>
+            }
+
+            <!-- Mode: reserve (form) -->
+            @if (sidebarMode === 'reserve' && form) {
+              <form [formGroup]="form" (ngSubmit)="reserve()">
+
+                <!-- Ticket type -->
+                @if (hasTicketTypes) {
+                  <div class="form-group">
+                    <label class="form-label">Type de billet</label>
+                    <select formControlName="ticketType" class="form-select">
+                      @for (tt of event.ticketTypes; track tt.name) {
+                        <option [value]="tt.name">
+                          {{ tt.name }} — {{ isEarlyBirdActive(tt) ? (tt.earlyBird?.price ?? tt.price) : tt.price }} €
+                          @if (isEarlyBirdActive(tt)) { ★ Early bird }
+                        </option>
+                      }
+                    </select>
+                  </div>
+                }
+
+                <!-- Quantity -->
+                <div class="form-group">
+                  <label class="form-label">Nombre de places</label>
+                  <div class="qty-control">
+                    <button type="button" class="qty-btn" (click)="decrementTickets()" [disabled]="(form.get('numberOfTickets')?.value ?? 1) <= 1">
+                      <span class="material-icons">remove</span>
+                    </button>
+                    <input type="number" formControlName="numberOfTickets" class="qty-input" min="1" [max]="maxTickets" />
+                    <button type="button" class="qty-btn" (click)="incrementTickets()" [disabled]="(form.get('numberOfTickets')?.value ?? 1) >= maxTickets">
+                      <span class="material-icons">add</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Promo code -->
+                <div class="promo-group">
+                  @if (!appliedPromo) {
+                    <div class="promo-row">
+                      <input type="text" formControlName="promoCode" class="form-input" placeholder="Code promo" />
+                      <button type="button" class="btn btn-secondary btn-sm" (click)="applyPromoCode()" [disabled]="promoCheckLoading">
+                        @if (promoCheckLoading) {
+                          <span class="spinner spinner-sm"></span>
+                        } @else {
+                          Appliquer
+                        }
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="promo-applied">
+                      <span class="material-icons">check_circle</span>
+                      <span>Code <strong>{{ appliedPromo.code }}</strong> appliqué</span>
+                      <button type="button" class="promo-remove" (click)="removePromoCode()">
+                        <span class="material-icons">close</span>
+                      </button>
+                    </div>
+                  }
+                  @if (promoError) {
+                    <p class="promo-error">{{ promoError }}</p>
+                  }
+                </div>
+
+                <!-- Total & reserve button -->
+                @if (event.type === 'paid') {
+                  <div class="reservation-total">
+                    <span>Total</span>
+                    <span class="total-amount">{{ totalPrice | currency:'EUR' }}</span>
+                  </div>
+                }
+
+                <button type="submit" class="btn btn-primary btn-block" [disabled]="reserving || form.invalid">
+                  @if (reserving) {
+                    <span class="spinner spinner-sm"></span> Réservation en cours…
+                  } @else {
+                    Réserver
+                  }
+                </button>
+
+                @if (reservationError) {
+                  <p class="reservation-error">{{ reservationError }}</p>
+                }
+
+                <p class="reservation-note">
+                  <span class="material-icons">info</span>
+                  Un email de confirmation avec votre QR code vous sera envoyé.
+                </p>
+              </form>
+            }
+
+            <!-- Mode: success -->
+            @if (sidebarMode === 'success') {
+              <div class="success-notice">
+                <span class="material-icons success-icon">check_circle</span>
+                <h3>Réservation confirmée !</h3>
+                <p>Un email avec votre QR code a été envoyé.</p>
+                <a routerLink="/my-reservations" class="btn btn-primary">Voir mes réservations</a>
+              </div>
+            }
+
+            @if (isOrganizer) {
+              <div class="organizer-actions">
+                <a [routerLink]="['/events', event._id, 'edit']" class="btn btn-secondary btn-block">
+                  <span class="material-icons">edit</span> Modifier l'événement
+                </a>
+              </div>
+            }
+
+          </div>
+
+          <!-- Certificate -->
+          @if ((hasConfirmedReservation || isOrganizer || isEventPast) && !isPast) {
+            <div class="certificate-section">
+              <app-manage-certificates [eventId]="event._id" />
+            </div>
+          }
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══ EXTRAS (reviews, gallery, similar, chat) ═══ -->
+    <div class="detail-extras">
+      <app-event-reviews     [eventId]="event._id" />
+      <app-event-gallery     [eventId]="event._id" />
+      <app-similar-events    [eventId]="event._id" [category]="event.category" [excludeTitle]="event.title" />
+      <app-event-chat        [eventId]="event._id" />
+    </div>
+  }
+
+</div>

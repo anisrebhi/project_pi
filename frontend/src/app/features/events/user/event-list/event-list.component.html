@@ -1,0 +1,170 @@
+<div class="events-page">
+  <div class="events-container">
+
+    <!-- ── Header ─────────────────────────────────────────────────────── -->
+    <div class="events-header">
+      <div class="events-header-text">
+        <span class="section-label">Catalogue</span>
+        <h1>Explorez les événements</h1>
+        <p>Découvrez notre sélection et réservez votre place en quelques secondes.</p>
+      </div>
+    </div>
+
+    <!-- ── Filtres ─────────────────────────────────────────────────────── -->
+    <form [formGroup]="filters" class="filters-row">
+      <div class="search-field">
+        <span class="material-icons search-icon">search</span>
+        <input type="text" formControlName="search" placeholder="Rechercher un événement…">
+      </div>
+      <select formControlName="type" class="filter-select">
+        <option value="">Tous les types</option>
+        <option value="free">Gratuit</option>
+        <option value="paid">Payant</option>
+      </select>
+      <select formControlName="sortBy" class="filter-select">
+        <option value="startDate">Date</option>
+        <option value="title">Titre</option>
+        <option value="price">Prix</option>
+      </select>
+    </form>
+
+    <!-- ── Catégories ─────────────────────────────────────────────────── -->
+    <div class="category-strip">
+      <button type="button" *ngFor="let c of categories"
+        class="category-chip"
+        [class.active]="filters.get('category')?.value === c.value"
+        (click)="filters.get('category')?.setValue(c.value)">
+        <span [innerHTML]="c.svgIcon" class="chip-icon"></span>
+        {{ c.label }}
+      </button>
+    </div>
+
+    <!-- ── Erreur ──────────────────────────────────────────────────────── -->
+    <div class="alert alert-error" *ngIf="errorMessage">
+      <span class="material-icons">error_outline</span>
+      {{ errorMessage }}
+    </div>
+
+    <!-- ── Skeletons chargement ───────────────────────────────────────── -->
+    <div class="events-grid" *ngIf="loading">
+      <div class="event-skeleton" *ngFor="let i of [1,2,3,4,5,6]">
+        <div class="sk-img"></div>
+        <div class="sk-body">
+          <div class="sk-line w-60"></div>
+          <div class="sk-line w-90"></div>
+          <div class="sk-line w-70"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Grille events ──────────────────────────────────────────────── -->
+    <ng-container *ngIf="!loading && !errorMessage">
+
+      <div class="result-bar" *ngIf="pagination">
+        <span class="result-count">
+          {{ pagination.total }} événement{{ pagination.total !== 1 ? 's' : '' }} trouvé{{ pagination.total !== 1 ? 's' : '' }}
+        </span>
+      </div>
+
+      <div class="events-grid" *ngIf="events.length > 0; else empty">
+        <a class="event-tile animate-in" *ngFor="let event of events; let i = index"
+           [routerLink]="['/events', event._id]"
+           [style.animation-delay]="(i * 0.05) + 's'">
+
+          <!-- Image / Placeholder -->
+          <div class="event-tile-img">
+            <img *ngIf="getEventImageUrl(event)"
+                 [src]="getEventImageUrl(event)"
+                 [alt]="event.title"
+                 loading="lazy">
+            <!-- Placeholder gradient si aucune image -->
+            <div *ngIf="!getEventImageUrl(event)"
+                 class="event-tile-img-placeholder"
+                 [style.background]="getCategoryGradient(event.category ?? '')">
+              <span [innerHTML]="getCategorySvg(event.category ?? '')" class="tile-placeholder-svg"></span>
+            </div>
+
+            <!-- Badge catégorie -->
+            <span class="tile-cat-badge"
+                  [style.background]="getCategoryColor(event.category ?? '')">
+              {{ getCategoryEmoji(event.category ?? '') }}
+              {{ getCategoryLabel(event.category ?? '') }}
+            </span>
+
+            <!-- Badge complet -->
+            <span class="tile-full-badge" *ngIf="event.isFull || computeIsFull(event)">
+              Complet
+            </span>
+          </div>
+
+          <!-- Corps -->
+          <div class="event-tile-body">
+            <h3>{{ event.title }}</h3>
+
+            <div class="tile-meta">
+              <!-- Date -->
+              <span class="tile-meta-row">
+                <span class="material-icons">calendar_today</span>
+                {{ event.startDate | date:'EEE d MMM yyyy' }}
+              </span>
+              <!-- Heure -->
+              <span class="tile-meta-row">
+                <span class="material-icons">schedule</span>
+                {{ event.startDate | date:'HH:mm' }}
+              </span>
+              <!-- Lieu -->
+              <span class="tile-meta-row" *ngIf="event.location?.address">
+                <span class="material-icons">place</span>
+                {{ event.location!.address }}
+              </span>
+              <!-- Organisateur -->
+              <span class="tile-meta-row" *ngIf="asOrganizer(event.organizer)?.fullName">
+                <span class="material-icons">person</span>
+                {{ asOrganizer(event.organizer).fullName }}
+              </span>
+            </div>
+
+            <!-- Footer prix + places -->
+            <div class="tile-footer">
+              <span class="tile-price" *ngIf="event.type === 'paid'">{{ event.price | number:'1.0-0' }} DT</span>
+              <span class="tile-price free" *ngIf="event.type === 'free'">Gratuit</span>
+
+              <span class="tile-spots" *ngIf="!event.isFull && !computeIsFull(event)">
+                <span class="material-icons" style="font-size:13px">group</span>
+                {{ computeAvailableSpots(event) }} place{{ computeAvailableSpots(event) !== 1 ? 's' : '' }}
+              </span>
+              <span class="tile-full-label" *ngIf="event.isFull || computeIsFull(event)">Complet</span>
+            </div>
+          </div>
+
+        </a>
+      </div>
+
+      <!-- Vide -->
+      <ng-template #empty>
+        <div class="empty-block">
+          <span class="material-icons empty-icon">search_off</span>
+          <h3>Aucun résultat</h3>
+          <p>Essayez de modifier vos filtres ou explorez d'autres catégories.</p>
+          <button class="btn btn-secondary" (click)="resetFilters()">
+            Réinitialiser les filtres
+          </button>
+        </div>
+      </ng-template>
+
+      <!-- Pagination -->
+      <div class="pagination-bar" *ngIf="pagination && pagination.totalPages > 1">
+        <button class="page-btn" (click)="goToPage(page - 1)" [disabled]="page === 1">
+          <span class="material-icons">chevron_left</span>
+        </button>
+        <ng-container *ngFor="let p of pageNumbers">
+          <button class="page-btn" [class.active]="p === page" (click)="goToPage(p)">{{ p }}</button>
+        </ng-container>
+        <button class="page-btn" (click)="goToPage(page + 1)" [disabled]="page === pagination.totalPages">
+          <span class="material-icons">chevron_right</span>
+        </button>
+      </div>
+
+    </ng-container>
+  </div>
+</div>

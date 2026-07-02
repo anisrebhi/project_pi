@@ -1,0 +1,72 @@
+<div class="auth-page">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo">
+          <div class="auth-logo-icon">EP</div>
+        </div>
+        <h1 class="auth-title">Créer un compte</h1>
+        <p class="auth-subtitle">Rejoignez EventPass et commencez à réserver</p>
+      </div>
+
+      <div class="alert alert-error" *ngIf="serverError">{{ serverError }}</div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="field">
+          <label for="fullName">Nom complet</label>
+          <input id="fullName" type="text" formControlName="fullName"
+            [class.invalid]="f['fullName'].invalid && f['fullName'].touched"
+            placeholder="Ahmed Ben Ali" autocomplete="name">
+          <span class="error-text" *ngIf="f['fullName'].touched && f['fullName'].errors?.['required']">Le nom complet est requis.</span>
+          <span class="error-text" *ngIf="f['fullName'].touched && f['fullName'].errors?.['minlength']">Minimum 2 caractères.</span>
+        </div>
+
+        <div class="field">
+          <label for="email">Adresse email</label>
+          <input id="email" type="email" formControlName="email"
+            [class.invalid]="f['email'].invalid && f['email'].touched"
+            placeholder="vous@exemple.com" autocomplete="email">
+          <span class="error-text" *ngIf="f['email'].touched && f['email'].errors?.['required']">L'email est requis.</span>
+          <span class="error-text" *ngIf="f['email'].touched && f['email'].errors?.['email']">Email invalide.</span>
+        </div>
+
+        <div class="field">
+          <label for="phone">Téléphone <span class="field-optional">(optionnel)</span></label>
+          <input id="phone" type="tel" formControlName="phone" placeholder="+216 12 345 678" autocomplete="tel">
+        </div>
+
+        <div class="field">
+          <label>Je m'inscris en tant que</label>
+          <div class="role-options" role="radiogroup" aria-label="Rôle du compte">
+            <label class="role-pill" *ngFor="let r of availableRoles"
+              [class.active]="f['role'].value === r.value">
+              <input type="radio" name="role" formControlName="role" [value]="r.value" class="role-input">
+              <span class="role-label">{{ r.label }}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="password">Mot de passe</label>
+          <input id="password" type="password" formControlName="password"
+            [class.invalid]="f['password'].invalid && f['password'].touched"
+            placeholder="Minimum 6 caractères" autocomplete="new-password">
+          <span class="error-text" *ngIf="f['password'].touched && f['password'].errors?.['required']">Le mot de passe est requis.</span>
+          <span class="error-text" *ngIf="f['password'].touched && f['password'].errors?.['minlength']">Minimum 6 caractères.</span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" [disabled]="loading">
+          <span class="spinner" *ngIf="loading"></span>
+          {{ loading ? 'Création...' : 'Créer mon compte' }}
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <span>Vous avez déjà un compte ?</span>
+        <a routerLink="/login" class="auth-link">Se connecter</a>
+      </div>
+    </div>
+
+    <div class="auth-bg"></div>
+  </div>
+</div>
