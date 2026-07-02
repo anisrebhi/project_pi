@@ -19,17 +19,10 @@ import { ThemeService } from '../../core/services/theme.service';
 
     <!-- Desktop links -->
     <nav class="fo-links" [class.open]="mobileOpen()">
-<<<<<<< HEAD
       <a routerLink="/events" routerLinkActive="fo-link-active" [routerLinkActiveOptions]="{exact:false}" class="fo-link" (click)="close()" *ngIf="!auth.isAuthenticated() || !isParticipant">
         <span class="material-icons">explore</span> Événements
       </a>
       <ng-container *ngIf="auth.isAuthenticated() && isStaff">
-=======
-      <a routerLink="/events" routerLinkActive="fo-link-active" [routerLinkActiveOptions]="{exact:false}" class="fo-link" (click)="close()">
-        <span class="material-icons">explore</span> Événements
-      </a>
-      <ng-container *ngIf="auth.isAuthenticated()">
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
         <a routerLink="/my-reservations" routerLinkActive="fo-link-active" [routerLinkActiveOptions]="{exact:false}" class="fo-link" (click)="close()">
           <span class="material-icons">confirmation_number</span> Mes réservations
         </a>
@@ -65,21 +58,11 @@ import { ThemeService } from '../../core/services/theme.service';
             <a routerLink="/profile" class="fo-dropdown-item" (click)="userMenuOpen.set(false)">
               <span class="material-icons">person</span> Mon profil
             </a>
-<<<<<<< HEAD
-            <a routerLink="/events" class="fo-dropdown-item" (click)="userMenuOpen.set(false)">
-              <span class="material-icons">explore</span> Événements
-            </a>
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
             <a routerLink="/my-reservations" class="fo-dropdown-item" (click)="userMenuOpen.set(false)">
               <span class="material-icons">confirmation_number</span> Mes réservations
             </a>
             <a routerLink="/my-certificates" class="fo-dropdown-item" (click)="userMenuOpen.set(false)">
-<<<<<<< HEAD
               <span class="material-icons">workspace_premium</span> Certificats
-=======
-              <span class="material-icons">workspace_premium</span> Mes certificats
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
             </a>
             <div class="fo-dropdown-divider"></div>
             <button class="fo-dropdown-item danger" (click)="logout()">
@@ -223,10 +206,7 @@ export class FoNavbarComponent {
     const map: Record<string, string> = { ADMIN: 'Administrateur', ORGANIZER: 'Organisateur', PARTICIPANT: 'Participant' };
     return map[this.auth.currentUser()?.role ?? ''] ?? '';
   }
-<<<<<<< HEAD
   get isParticipant(): boolean { return this.auth.currentUser()?.role === 'PARTICIPANT'; }
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   get isStaff(): boolean {
     const r = this.auth.currentUser()?.role;
     return r === 'ADMIN' || r === 'ORGANIZER';

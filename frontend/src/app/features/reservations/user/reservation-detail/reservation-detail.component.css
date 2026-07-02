@@ -1,8 +1,4 @@
 .back-link {
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -18,9 +14,6 @@
 .back-link:hover {
   color: var(--color-primary);
   background: var(--brand-50);
-}
-:host-context(.dark) .back-link:hover {
-  background: rgba(99, 102, 241, .1);
 }
 
 .ticket-card {
@@ -106,16 +99,9 @@
   padding: var(--space-3);
   border-radius: var(--radius-md);
   background: var(--gray-50);
-  transition: background var(--duration-fast);
 }
 .meta-row:hover {
   background: var(--gray-100);
-}
-:host-context(.dark) .meta-row {
-  background: var(--dark-surface-2);
-}
-:host-context(.dark) .meta-row:hover {
-  background: var(--dark-surface);
 }
 .meta-icon {
   font-size: 18px !important;
@@ -139,10 +125,6 @@
   background: var(--brand-50);
   border: 1px solid var(--brand-200);
 }
-:host-context(.dark) .meta-row-total {
-  background: rgba(99, 102, 241, .1);
-  border-color: rgba(99, 102, 241, .2);
-}
 .meta-value-total {
   font-size: 1.1rem;
   font-weight: 800;
@@ -159,11 +141,8 @@
   flex: 1;
   height: 1px;
   background: repeating-linear-gradient(
-    90deg,
-    var(--color-line) 0,
-    var(--color-line) 8px,
-    transparent 8px,
-    transparent 16px
+    90deg, var(--color-line) 0, var(--color-line) 8px,
+    transparent 8px, transparent 16px
   );
 }
 .ticket-divider-dot {
@@ -195,9 +174,6 @@
 .qr-image-wrap img {
   width: 180px;
   height: 180px;
-}
-:host-context(.dark) .qr-image-wrap {
-  background: var(--dark-surface-2);
 }
 .qr-label {
   display: inline-flex;
@@ -245,8 +221,6 @@
 .btn-outline:hover {
   background: var(--color-danger);
   color: #fff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(239, 68, 68, .3);
 }
 
 @media (max-width: 640px) {
@@ -272,23 +246,3 @@
     margin-left: calc(18px + var(--space-3));
   }
 }
-<<<<<<< HEAD
-=======
-=======
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 14px; font-weight: 600; color: var(--color-muted);
-  text-decoration: none; margin-bottom: 20px;
-}
-.back-link:hover { color: var(--color-primary); }
-
-.qr-section { display: flex; flex-direction: column; align-items: center; }
-.qr-placeholder {
-  width: 180px; height: 180px;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--color-primary-soft);
-  border-radius: var(--radius-md);
-  border: 4px dashed var(--color-line);
-  color: var(--color-muted);
-}
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851

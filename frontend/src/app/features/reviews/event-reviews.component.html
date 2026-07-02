@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 <div class="reviews-section" *ngIf="showSection">
-=======
-<div class="reviews-section">
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   <div class="reviews-header">
     <div class="reviews-header-left">
       <h2>Avis et Évaluations</h2>
@@ -37,15 +33,11 @@
 
   <div *ngIf="!loading() && total() === 0" class="empty-reviews">
     <span class="material-icons empty-reviews-icon">rate_review</span>
-<<<<<<< HEAD
     <p class="empty-reviews-title">Aucun avis pour le moment</p>
     <p class="empty-reviews-sub" *ngIf="canReview && auth.isAuthenticated()">Soyez le premier à partager votre expérience&nbsp;!</p>
     <button *ngIf="canReview && auth.isAuthenticated()" class="btn btn-primary" (click)="scrollToForm()">
       <span class="material-icons">edit</span> Laisser un avis
     </button>
-=======
-    <p>Aucun avis pour le moment. Soyez le premier !</p>
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   </div>
 
   <div class="reviews-list" *ngIf="!loading()">

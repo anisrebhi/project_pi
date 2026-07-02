@@ -51,13 +51,7 @@ const sendDevError = (err, res) => {
     success: false,
     statusCode: err.statusCode || 500,
     message: err.message,
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
     waitlistAvailable: err.waitlistAvailable || false,
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     stack: err.stack,
   });
 };
@@ -67,13 +61,7 @@ const sendProdError = (err, res) => {
     return res.status(err.statusCode).json({
       success: false,
       message: err.message,
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
       waitlistAvailable: err.waitlistAvailable || false,
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     });
   }
   console.error('💥 UNHANDLED ERROR:', err);

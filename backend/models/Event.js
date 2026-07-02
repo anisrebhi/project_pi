@@ -46,7 +46,6 @@ const ticketTypeSchema = new mongoose.Schema(
       required: [true, 'Ticket type price is required'],
       min: [0, 'Price cannot be negative'],
     },
-    // Maximum tickets available for this type. null = bounded only by the event's overall capacity.
     quantity: {
       type: Number,
       default: null,
@@ -72,7 +71,6 @@ ticketTypeSchema.pre('validate', function (next) {
   next();
 });
 
-<<<<<<< HEAD
 const attachmentSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
@@ -81,8 +79,6 @@ const attachmentSchema = new mongoose.Schema(
   { _id: false }
 );
 
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 const eventSchema = new mongoose.Schema(
   {
     title: {
@@ -99,7 +95,6 @@ const eventSchema = new mongoose.Schema(
       default: '',
     },
     location: { type: locationSchema, default: () => ({}) },
-<<<<<<< HEAD
     participationMode: {
       type: String,
       enum: {
@@ -112,8 +107,6 @@ const eventSchema = new mongoose.Schema(
     tags: [{ type: String, trim: true }],
     conditions: { type: String, trim: true, default: '' },
     attachments: { type: [attachmentSchema], default: [] },
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     startDate: { type: Date, required: [true, 'Start date is required'] },
     endDate:   { type: Date, required: [true, 'End date is required'] },
     category: {
@@ -135,12 +128,8 @@ const eventSchema = new mongoose.Schema(
       required: [true, 'Organizer is required'],
     },
     participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-<<<<<<< HEAD
     isActive:   { type: Boolean, default: true },
     isArchived: { type: Boolean, default: false },
-=======
-    isActive:  { type: Boolean, default: true },
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     deletedAt: { type: Date, default: null },
     type: {
       type: String,
@@ -151,19 +140,12 @@ const eventSchema = new mongoose.Schema(
       default: 'free',
     },
     price:  { type: Number, default: 0, min: [0, 'Price cannot be negative'] },
-    // Ticket types (Standard / VIP / Premium / Etudiant) each with their own price,
-    // optional quantity cap and optional early bird pricing. Only relevant for paid events;
-    // when empty the legacy single `price` field is used as before.
     ticketTypes: { type: [ticketTypeSchema], default: [] },
-    // Maximum number of tickets a single user may reserve for this event (hard-capped at 20
-    // by the reservation schema/validators regardless of this value).
     maxTicketsPerUser: { type: Number, default: 20, min: [1, 'maxTicketsPerUser must be at least 1'], max: [20, 'maxTicketsPerUser cannot exceed 20'] },
     images: { type: [imageSchema], default: [] },
     qrCode: {
       type: String,
       default: null,
-      // Stores a base64 PNG data URL generated automatically on create
-      // and refreshable via PATCH /api/events/:id/qrcode
     },
   },
   {
@@ -183,11 +165,7 @@ eventSchema.index({ title: 'text', description: 'text' });
 // ─── Soft Delete Query Middleware ─────────────────────────────────────────────
 eventSchema.pre(/^find/, function (next) {
   if (!this.getOptions().includeSoftDeleted) {
-<<<<<<< HEAD
     this.find({ isActive: { $ne: false }, isArchived: { $ne: true } });
-=======
-    this.find({ isActive: { $ne: false } });
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   }
   next();
 });
@@ -198,7 +176,6 @@ eventSchema.pre('save', function (next) {
   if (this.type === 'paid' && (!this.price || this.price <= 0)) {
     return next(new AppError('Paid events must have a price greater than 0', 400));
   }
-  // New events must start in the future (defense-in-depth alongside route validation)
   if (this.isNew && this.startDate && this.startDate.getTime() <= Date.now()) {
     return next(new AppError('Event start date must be in the future. Creating an event with a past date is not allowed.', 400));
   }
@@ -215,7 +192,6 @@ eventSchema.pre('findOneAndUpdate', function (next) {
   if (u.type === 'paid' && u.price !== undefined && u.price <= 0) {
     return next(new AppError('Paid events must have a price greater than 0', 400));
   }
-  // Prevent rescheduling an event to start in the past
   if (u.startDate && new Date(u.startDate).getTime() <= Date.now()) {
     return next(new AppError('startDate must be a future date. An event cannot be rescheduled to a past date.', 400));
   }
@@ -253,11 +229,6 @@ eventSchema.methods.softDelete = async function () {
   return await this.save();
 };
 
-/**
- * Resolve the effective unit price for a given ticket type name, accounting
- * for an active early bird window. Falls back to the legacy flat `price`
- * field when the event has no configured ticket types (backward compatibility).
- */
 eventSchema.methods.getTicketPrice = function (ticketTypeName) {
   if (!this.ticketTypes || this.ticketTypes.length === 0) {
     return { unitPrice: this.price, isEarlyBird: false, ticketType: null };

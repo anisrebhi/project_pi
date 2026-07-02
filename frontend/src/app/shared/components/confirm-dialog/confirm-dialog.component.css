@@ -1,10 +1,6 @@
 .confirm-overlay {
   position: fixed;
   inset: 0;
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   background: rgba(15, 23, 42, 0.55);
   backdrop-filter: blur(8px);
   display: flex;
@@ -18,25 +14,10 @@
 @keyframes overlayIn {
   from { opacity: 0; }
   to { opacity: 1; }
-<<<<<<< HEAD
-=======
-=======
-  background: rgba(30, 27, 46, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: 16px;
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 }
 
 .confirm-box {
   background: var(--color-surface);
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-2xl);
   padding: var(--space-8);
@@ -78,44 +59,16 @@
   font-size: 1.15rem;
   color: var(--color-ink);
   margin-bottom: var(--space-2);
-<<<<<<< HEAD
-=======
-=======
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-pop);
-  padding: 24px;
-  max-width: 380px;
-  width: 100%;
-}
-
-.confirm-box h3 {
-  font-size: 18px;
-  margin-bottom: 8px;
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 }
 
 .confirm-box p {
   color: var(--color-muted);
-<<<<<<< HEAD
   font-size: .875rem;
   line-height: 1.6;
-=======
-<<<<<<< HEAD
-  font-size: .875rem;
-  line-height: 1.6;
-=======
-  font-size: 14px;
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 }
 
 .confirm-actions {
   display: flex;
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   justify-content: center;
   gap: var(--space-3);
   margin-top: var(--space-6);
@@ -129,12 +82,3 @@
 .btn-ghost:hover { background: var(--gray-50); color: var(--color-ink); border-color: var(--gray-300); }
 :host-context(.dark) .btn-ghost { border-color: var(--dark-line); color: var(--dark-muted); }
 :host-context(.dark) .btn-ghost:hover { background: var(--dark-surface-2); color: var(--dark-ink); }
-<<<<<<< HEAD
-=======
-=======
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 20px;
-}
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851

@@ -15,7 +15,6 @@ export class RecommendationService {
     return this.http.get<ApiResponse<RecommendationResult>>(`${this.apiUrl}/recommendations`);
   }
 
-<<<<<<< HEAD
   getSimilarEvents(
     eventId: string,
     filters?: { category?: string | null; excludeTitle?: string | null }
@@ -26,9 +25,5 @@ export class RecommendationService {
     };
 
     return this.http.get<ApiResponse<any>>(`${this.apiUrl}/events/${eventId}/similar`, { params });
-=======
-  getSimilarEvents(eventId: string): Observable<ApiResponse<{ events: any[] }>> {
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/events/${eventId}/similar`);
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   }
 }

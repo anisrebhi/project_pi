@@ -1,31 +1,7 @@
 /**
  * @file controllers/certificateController.js
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
- * @description Full certificate management:
- *   initializeCertificates  — POST /api/certificates/initialize/:eventId
- *   generateForOne          — POST /api/certificates/generate-one
- *   getEventCertificates    — GET  /api/certificates/event/:eventId
- *   getAllCertificates       — GET  /api/certificates/all            (Admin)
- *   validateCertificate     — PATCH /api/certificates/:id/validate
- *   bulkValidate            — PATCH /api/certificates/bulk-validate/:eventId
- *   sendCertificate         — PATCH /api/certificates/:id/send
- *   bulkSend                — POST  /api/certificates/bulk-send/:eventId
- *   deleteCertificate       — DELETE /api/certificates/:id
- *   downloadCertificate     — GET  /api/certificates/download/:id
- *   previewCertificate      — GET  /api/certificates/preview/:id
- *   getMyCertificates       — GET  /api/certificates/my
- *   verifyCertificate       — GET  /api/certificates/verify/:code   (public)
- *
- * RBAC:
- *   Public           → verifyCertificate
- *   Any auth         → getMyCertificates, downloadCertificate (own cert)
- *   Admin/Organizer  → all management actions (route middleware + canManage check)
- *   Admin only       → getAllCertificates, deleteCertificate on any cert
+ * @description Full certificate management.
  */
-
 const crypto                     = require('crypto');
 const Certificate                = require('../models/Certificate');
 const Reservation                = require('../models/Reservation');
@@ -36,17 +12,9 @@ const { sendMail }               = require('../utils/emailService');
 const { buildCertificateEmail }  = require('../utils/emailTemplates');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/** Load event with organizer populated */
 const loadEvent = (id) =>
   Event.findById(id).populate('organizer', 'fullName email');
 
-/**
- * Check whether user may manage certificates for this event.
- * - ADMIN: always yes
- * - ORGANIZER: only if they own the event
- */
 const canManage = (user, event) => {
   if (!user || !event) return false;
   if (user.role === 'ADMIN') return true;
@@ -59,11 +27,9 @@ const canManage = (user, event) => {
   return organizerId === user._id.toString();
 };
 
-/** Generate a unique uppercase verification code */
 const generateCode = () =>
   crypto.randomUUID().replace(/-/g, '').toUpperCase();
 
-/** Populate fields needed for PDF generation */
 const CERT_PDF_POPULATE = [
   { path: 'user', select: 'fullName email' },
   {
@@ -73,7 +39,6 @@ const CERT_PDF_POPULATE = [
   },
 ];
 
-/** Build PDF + send email helper — reused by sendCertificate and bulkSend */
 const generateAndSend = async (certificate) => {
   const pdfBuffer = await generateCertificatePDF({
     user:             certificate.user,
@@ -93,12 +58,6 @@ const generateAndSend = async (certificate) => {
 };
 
 // ─── Initialize all ───────────────────────────────────────────────────────────
-/**
- * POST /api/certificates/initialize/:eventId
- * Creates PENDING certificates for every confirmed participant.
- * Idempotent — skips participants who already have a certificate.
- * Query param: ?force=true  bypasses the endDate check.
- */
 const initializeCertificates = async (req, res) => {
   try {
     const event = await loadEvent(req.params.eventId);
@@ -108,7 +67,6 @@ const initializeCertificates = async (req, res) => {
       return sendError(res, 403, 'Accès refusé — vous n\'êtes pas l\'organisateur de cet événement.');
     }
 
-    // Enforce event-end check unless ?force=true is passed
     const force = req.query.force === 'true' || req.body?.force === true;
     if (!force && new Date(event.endDate) > new Date()) {
       return sendError(
@@ -118,8 +76,6 @@ const initializeCertificates = async (req, res) => {
       );
     }
 
-    // Optional: restrict to selected user IDs (sent from the frontend checkboxes)
-    // If not provided → initialize ALL confirmed participants
     const selectedUserIds = Array.isArray(req.body?.userIds) && req.body.userIds.length > 0
       ? req.body.userIds.map(id => id.toString())
       : null;
@@ -178,11 +134,6 @@ const initializeCertificates = async (req, res) => {
 };
 
 // ─── Generate for one participant ─────────────────────────────────────────────
-/**
- * POST /api/certificates/generate-one
- * Body: { eventId, userId }
- * Creates + auto-validates a certificate for a single confirmed participant.
- */
 const generateForOne = async (req, res) => {
   try {
     const { eventId, userId } = req.body;
@@ -209,7 +160,6 @@ const generateForOne = async (req, res) => {
       return sendError(res, 404, 'Aucune réservation confirmée pour ce participant.');
     }
 
-    // Idempotent — return existing if already created
     const existing = await Certificate.findOne({ user: userId, event: eventId });
     if (existing) {
       return sendSuccess(res, 200, 'Ce certificat existe déjà.', {
@@ -236,9 +186,6 @@ const generateForOne = async (req, res) => {
 };
 
 // ─── Get event certificates ───────────────────────────────────────────────────
-/**
- * GET /api/certificates/event/:eventId
- */
 const getEventCertificates = async (req, res) => {
   try {
     const event = await loadEvent(req.params.eventId);
@@ -269,10 +216,6 @@ const getEventCertificates = async (req, res) => {
 };
 
 // ─── Get all certificates (Admin) ─────────────────────────────────────────────
-/**
- * GET /api/certificates/all
- * Admin only — paginated with filters
- */
 const getAllCertificates = async (req, res) => {
   try {
     const page  = Math.max(parseInt(req.query.page)  || 1, 1);
@@ -313,9 +256,6 @@ const getAllCertificates = async (req, res) => {
 };
 
 // ─── Validate one ─────────────────────────────────────────────────────────────
-/**
- * PATCH /api/certificates/:id/validate
- */
 const validateCertificate = async (req, res) => {
   try {
     const cert = await Certificate.findById(req.params.id).populate({
@@ -348,9 +288,6 @@ const validateCertificate = async (req, res) => {
 };
 
 // ─── Bulk validate ────────────────────────────────────────────────────────────
-/**
- * PATCH /api/certificates/bulk-validate/:eventId
- */
 const bulkValidate = async (req, res) => {
   try {
     const event = await loadEvent(req.params.eventId);
@@ -374,9 +311,6 @@ const bulkValidate = async (req, res) => {
 };
 
 // ─── Send by email ────────────────────────────────────────────────────────────
-/**
- * PATCH /api/certificates/:id/send
- */
 const sendCertificate = async (req, res) => {
   try {
     const cert = await Certificate.findById(req.params.id).populate(CERT_PDF_POPULATE);
@@ -405,9 +339,6 @@ const sendCertificate = async (req, res) => {
 };
 
 // ─── Bulk send ────────────────────────────────────────────────────────────────
-/**
- * POST /api/certificates/bulk-send/:eventId
- */
 const bulkSend = async (req, res) => {
   try {
     const event = await loadEvent(req.params.eventId);
@@ -448,10 +379,6 @@ const bulkSend = async (req, res) => {
 };
 
 // ─── Delete ───────────────────────────────────────────────────────────────────
-/**
- * DELETE /api/certificates/:id
- * Admin may delete any certificate. Organizer may delete only their event's certs.
- */
 const deleteCertificate = async (req, res) => {
   try {
     const cert = await Certificate.findById(req.params.id).populate({
@@ -473,10 +400,6 @@ const deleteCertificate = async (req, res) => {
 };
 
 // ─── Download PDF ─────────────────────────────────────────────────────────────
-/**
- * GET /api/certificates/download/:id
- * Owner (participant) OR Admin/Organizer of the event can download.
- */
 const downloadCertificate = async (req, res) => {
   try {
     const cert = await Certificate.findById(req.params.id).populate(CERT_PDF_POPULATE);
@@ -499,7 +422,6 @@ const downloadCertificate = async (req, res) => {
       verificationCode: cert.verificationCode,
     });
 
-    // Track download
     cert.downloadCount = (cert.downloadCount || 0) + 1;
     cert.downloadedAt  = new Date();
     if (cert.status === 'validated') cert.status = 'downloaded';
@@ -519,10 +441,6 @@ const downloadCertificate = async (req, res) => {
 };
 
 // ─── Preview PDF (inline) ─────────────────────────────────────────────────────
-/**
- * GET /api/certificates/preview/:id
- * Same permissions as download but sends inline (for browser preview tab).
- */
 const previewCertificate = async (req, res) => {
   try {
     const cert = await Certificate.findById(req.params.id).populate(CERT_PDF_POPULATE);
@@ -555,106 +473,9 @@ const previewCertificate = async (req, res) => {
 };
 
 // ─── My certificates ──────────────────────────────────────────────────────────
-/**
- * GET /api/certificates/my
-<<<<<<< HEAD
-=======
-=======
- * @description Certificate generation, download and verification.
- */
-const crypto        = require('crypto');
-const Certificate   = require('../models/Certificate');
-const Reservation   = require('../models/Reservation');
-const { User }      = require('../models/User');
-const Event         = require('../models/Event');
-const { generateCertificatePDF } = require('../utils/certificateGenerator');
-const { sendEmail }               = require('../utils/emailService');
-const { buildCertificateEmail }   = require('../utils/emailTemplates');
-const { sendSuccess, sendError }  = require('../utils/apiResponse');
-
-/**
- * POST /api/certificates/generate/:eventId
- * Admin/Organizer — generate certificates for all confirmed participants of a past event.
- */
-const generateCertificates = async (req, res) => {
-  try {
-    const event = await Event.findById(req.params.eventId).populate('organizer', 'fullName email');
-    if (!event) return sendError(res, 404, 'Événement introuvable');
-
-    if (new Date(event.endDate) > new Date()) {
-      return sendError(res, 400, 'Les certificats ne peuvent être générés qu\'après la fin de l\'événement');
-    }
-
-    // Only the organizer or an admin can trigger generation
-    const isOrganizer = event.organizer._id.toString() === req.user._id.toString();
-    const isAdmin     = req.user.role === 'ADMIN';
-    if (!isOrganizer && !isAdmin) return sendError(res, 403, 'Accès refusé');
-
-    // Get confirmed reservations
-    const reservations = await Reservation.find({
-      event: event._id,
-      status: 'confirmed',
-    }).populate('user', 'fullName email');
-
-    if (!reservations.length) {
-      return sendSuccess(res, 200, 'Aucun participant confirmé pour cet événement', { generated: 0 });
-    }
-
-    let generated = 0;
-    let skipped   = 0;
-
-    for (const reservation of reservations) {
-      const user = reservation.user;
-      if (!user) continue;
-
-      // Skip if certificate already exists
-      const existing = await Certificate.findOne({ user: user._id, event: event._id });
-      if (existing) { skipped++; continue; }
-
-      // Create unique code
-      const verificationCode = crypto.randomUUID().replace(/-/g, '').toUpperCase();
-
-      // Create certificate record
-      const certificate = await Certificate.create({
-        user:             user._id,
-        event:            event._id,
-        reservation:      reservation._id,
-        verificationCode,
-      });
-
-      // Generate PDF
-      const pdfBuffer = await generateCertificatePDF({ user, event, verificationCode });
-
-      // Send email
-      const emailContent = buildCertificateEmail({ user, event, verificationCode, pdfBuffer });
-      await sendEmail({ to: user.email, ...emailContent });
-
-      // Mark as sent
-      certificate.emailSentAt = new Date();
-      await certificate.save();
-      generated++;
-    }
-
-    return sendSuccess(res, 200, `Certificats générés avec succès`, { generated, skipped });
-  } catch (err) {
-    console.error('generateCertificates error:', err);
-    return sendError(res, 500, 'Erreur lors de la génération des certificats');
-  }
-};
-
-/**
- * GET /api/certificates/my
- * Participant — list my certificates.
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
- */
 const getMyCertificates = async (req, res) => {
   try {
     const certificates = await Certificate.find({ user: req.user._id })
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
       .populate({
         path: 'event',
         select: 'title startDate endDate location organizer category',
@@ -670,9 +491,6 @@ const getMyCertificates = async (req, res) => {
 };
 
 // ─── Public verify ────────────────────────────────────────────────────────────
-/**
- * GET /api/certificates/verify/:code
- */
 const verifyCertificate = async (req, res) => {
   try {
     const code = (req.params.code || '').trim().toUpperCase();
@@ -708,11 +526,6 @@ const verifyCertificate = async (req, res) => {
 };
 
 // ─── Get confirmed participants (for init preview) ────────────────────────────
-/**
- * GET /api/certificates/event/:eventId/participants
- * Returns all confirmed reservations with participant info + existing cert status.
- * Used by the front-office to show the "Initialize" preview table.
- */
 const getConfirmedParticipants = async (req, res) => {
   try {
     const event = await loadEvent(req.params.eventId);
@@ -722,7 +535,6 @@ const getConfirmedParticipants = async (req, res) => {
       return sendError(res, 403, 'Accès refusé — vous n\'êtes pas l\'organisateur de cet événement.');
     }
 
-    // Get all confirmed reservations
     const reservations = await Reservation
       .find({ event: event._id, status: 'confirmed' })
       .populate('user', 'fullName email profileImage')
@@ -736,7 +548,6 @@ const getConfirmedParticipants = async (req, res) => {
       });
     }
 
-    // Get existing certificates for this event to mark already-initialized users
     const existingCerts = await Certificate.find({ event: event._id })
       .select('user status verificationCode');
 
@@ -757,7 +568,6 @@ const getConfirmedParticipants = async (req, res) => {
         reservedAt:     r.reservationDate || r.createdAt,
         ticketType:     r.ticketType,
         numberOfTickets: r.numberOfTickets,
-        // Certificate info (null if not yet created)
         hasCertificate: !!existCert,
         certStatus:     existCert?.status || null,
         certCode:       existCert?.verificationCode || null,
@@ -800,83 +610,3 @@ module.exports = {
   getMyCertificates,
   verifyCertificate,
 };
-
-<<<<<<< HEAD
-=======
-=======
-      .populate('event', 'title startDate endDate location organizer')
-      .populate({ path: 'event', populate: { path: 'organizer', select: 'fullName' } })
-      .sort({ issuedAt: -1 });
-
-    return sendSuccess(res, 200, 'Mes certificats', { certificates });
-  } catch (err) {
-    return sendError(res, 500, 'Erreur lors de la récupération des certificats');
-  }
-};
-
-/**
- * GET /api/certificates/download/:id
- * Participant — download certificate PDF by certificate _id.
- */
-const downloadCertificate = async (req, res) => {
-  try {
-    const certificate = await Certificate.findById(req.params.id)
-      .populate('user', 'fullName email')
-      .populate({
-        path: 'event',
-        select: 'title startDate endDate location organizer',
-        populate: { path: 'organizer', select: 'fullName' },
-      });
-
-    if (!certificate) return sendError(res, 404, 'Certificat introuvable');
-
-    // Only the owner or admin can download
-    if (certificate.user._id.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN') {
-      return sendError(res, 403, 'Accès refusé');
-    }
-
-    const pdfBuffer = await generateCertificatePDF({
-      user:             certificate.user,
-      event:            certificate.event,
-      verificationCode: certificate.verificationCode,
-    });
-
-    const filename = `certificat-${certificate.event.title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.send(pdfBuffer);
-  } catch (err) {
-    console.error('downloadCertificate error:', err);
-    return sendError(res, 500, 'Erreur lors du téléchargement');
-  }
-};
-
-/**
- * GET /api/certificates/verify/:code
- * Public — verify a certificate by its unique code.
- */
-const verifyCertificate = async (req, res) => {
-  try {
-    const certificate = await Certificate.findOne({ verificationCode: req.params.code })
-      .populate('user', 'fullName email')
-      .populate('event', 'title startDate endDate location organizer');
-
-    if (!certificate) {
-      return sendError(res, 404, 'Certificat invalide ou introuvable');
-    }
-
-    return sendSuccess(res, 200, 'Certificat valide', {
-      valid:     true,
-      issuedAt:  certificate.issuedAt,
-      holder:    certificate.user.fullName || certificate.user.email,
-      event:     certificate.event.title,
-      eventDate: certificate.event.startDate,
-    });
-  } catch (err) {
-    return sendError(res, 500, 'Erreur lors de la vérification');
-  }
-};
-
-module.exports = { generateCertificates, getMyCertificates, downloadCertificate, verifyCertificate };
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851

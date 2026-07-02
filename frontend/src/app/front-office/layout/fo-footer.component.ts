@@ -20,15 +20,6 @@ import { RouterLink } from '@angular/router';
         <a routerLink="/register">S'inscrire</a>
         <a routerLink="/login">Se connecter</a>
       </div>
-<<<<<<< HEAD
-
-=======
-      <div class="fo-footer-col">
-        <h4>Mon espace</h4>
-        <a routerLink="/my-reservations">Mes réservations</a>
-        <a routerLink="/my-certificates">Certificats</a>
-      </div>
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     </div>
   </div>
   <div class="fo-footer-bottom">

@@ -1,25 +1,16 @@
 /**
  * @file controllers/eventController.js
- * @description Event management controller — CRUD operations and
- *              Many-to-Many user registration/unregistration logic.
+ * @description Event management controller.
  */
-
 const Event = require("../models/Event");
 const { User, ROLES } = require("../models/User");
 const Reservation = require("../models/Reservation");
-<<<<<<< HEAD
 const Certificate = require("../models/Certificate");
-=======
-<<<<<<< HEAD
-=======
 const WaitlistEntry = require("../models/WaitlistEntry");
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 const { sendSuccess, sendError } = require("../utils/apiResponse");
 const { generateEventQRCode } = require("../utils/qrCodeHelper");
 const { notifyEventModified, notifyEventCancelled } = require("../utils/notificationService");
 
-// Helper pour réponses cohérentes
 const ok = (res, code, message, data = {}) =>
   res.status(code).json({ success: true, statusCode: code, message, ...data });
 
@@ -32,18 +23,12 @@ const getAllEvents = async (req, res, next) => {
     const skip  = (page - 1) * limit;
 
     const filter = {};
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 
-    // Non-admin/organizer users only see active events
     const isStaff = req.user && (req.user.role === 'ADMIN' || req.user.role === 'ORGANIZER');
     if (!isStaff) filter.isActive = true;
 
     if (req.query.search) {
       const searchRegex = { $regex: req.query.search, $options: 'i' };
-<<<<<<< HEAD
       filter.$or = [
         { title: searchRegex },
         { description: searchRegex },
@@ -51,13 +36,6 @@ const getAllEvents = async (req, res, next) => {
         { 'location.address': searchRegex },
       ];
     }
-=======
-      filter.$or = [{ title: searchRegex }, { description: searchRegex }];
-    }
-=======
-    if (req.query.search)   filter.$text     = { $search: req.query.search };
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     if (req.query.category) filter.category  = req.query.category;
     if (req.query.type)     filter.type      = req.query.type;
     if (req.query.startFrom || req.query.startTo) {
@@ -72,21 +50,12 @@ const getAllEvents = async (req, res, next) => {
     const [events, total] = await Promise.all([
       Event.find(filter)
         .populate('organizer', 'fullName email')
-<<<<<<< HEAD
         .populate('participants', '_id')
-=======
-<<<<<<< HEAD
-        .populate('participants', '_id')      // only IDs needed for count
-=======
-        .populate('participants', 'fullName email')
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
         .sort({ [sortField]: sortOrder })
         .skip(skip).limit(limit).lean(),
       Event.countDocuments(filter),
     ]);
 
-<<<<<<< HEAD
     // Aggregate real booked ticket count for all returned events
     const eventIds = events.map((e) => e._id);
     let bookedMap = {};
@@ -103,25 +72,12 @@ const getAllEvents = async (req, res, next) => {
       const bookedTickets  = bookedMap[ev._id.toString()] || 0;
       const participantCount = Array.isArray(ev.participants) ? ev.participants.length : 0;
       const availableSpots   = Math.max(0, (ev.capacity || 0) - bookedTickets);
-=======
-<<<<<<< HEAD
-    // Add computed fields that Mongoose virtuals normally provide
-    // (lost when using .lean() for performance)
-    const now = new Date();
-    const enriched = events.map(ev => {
-      const participantCount = Array.isArray(ev.participants) ? ev.participants.length : 0;
-      const availableSpots   = Math.max(0, (ev.capacity || 0) - participantCount);
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
       const isFull           = availableSpots <= 0;
       const isPast           = ev.endDate ? new Date(ev.endDate) < now : false;
       return {
         ...ev,
-<<<<<<< HEAD
         participants:    [],
         _bookedTickets:  bookedTickets,
-=======
-        participants:    [],          // don't expose participant IDs to public list
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
         participantCount,
         availableSpots,
         isFull,
@@ -132,14 +88,6 @@ const getAllEvents = async (req, res, next) => {
     const totalPages = Math.ceil(total / limit);
     return ok(res, 200, 'Events fetched successfully', {
       data: enriched,
-<<<<<<< HEAD
-=======
-=======
-    const totalPages = Math.ceil(total / limit);
-    return ok(res, 200, 'Events fetched successfully', {
-      data: events,
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
       pagination: { total, totalPages, currentPage: page, limit,
         hasNextPage: page < totalPages, hasPrevPage: page > 1 },
     });
@@ -151,18 +99,12 @@ const getAllEvents = async (req, res, next) => {
 const getEventById = async (req, res, next) => {
   try {
     const event = await Event.findById(req.params.id)
-<<<<<<< HEAD
       .populate({ path: 'organizer', select: 'fullName email' });
-=======
-      .populate({ path: "organizer", select: "fullName email phone profileImage role" })
-      .populate({ path: "participants", select: "fullName email profileImage role" });
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 
     if (!event) {
       return sendError(res, 404, `Event with ID "${req.params.id}" not found.`);
     }
 
-<<<<<<< HEAD
     // Attach real aggregated ticket count
     const bookedAgg = await Reservation.aggregate([
       { $match: { event: event._id, status: { $ne: 'cancelled' } } },
@@ -172,13 +114,12 @@ const getEventById = async (req, res, next) => {
     const booked = bookedAgg.length > 0 ? bookedAgg[0].total : 0;
     evt._bookedTickets = booked;
 
-    // Override Mongoose virtuals (based on participants.length = unique users)
-    // with real aggregated ticket counts.
+    // Override Mongoose virtuals with real aggregated ticket counts
     evt.participantCount  = booked;
     evt.availableSpots    = Math.max(0, (event.capacity || 0) - booked);
     evt.isFull            = evt.availableSpots <= 0;
 
-    // Attach reservation flag for authenticated users (review form)
+    // Attach reservation flag for authenticated users
     if (req.user) {
       const reservation = await Reservation.findOne({
         event: event._id, user: req.user._id, status: 'confirmed',
@@ -187,17 +128,10 @@ const getEventById = async (req, res, next) => {
     }
 
     return sendSuccess(res, 200, 'Event retrieved successfully.', evt);
-=======
-    return sendSuccess(res, 200, "Event retrieved successfully.", event);
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   } catch (error) {
     next(error);
   }
 };
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 
 // ─── Create Event ─────────────────────────────────────────────────────────────
 
@@ -210,7 +144,6 @@ const createEvent = async (req, res, next) => {
       ticketTypes, maxTicketsPerUser,
     } = req.body;
 
-    // Build images array: combine uploaded files + URL objects from body
     const uploadedImages = (req.files || []).map((f) => ({
       url: `${process.env.BASE_URL}/uploads/${f.filename}`,
       filename: f.filename,
@@ -236,70 +169,6 @@ const createEvent = async (req, res, next) => {
       maxTicketsPerUser: maxTicketsPerUser || 20,
     });
 
-
-    // Auto-generate QR code and persist it
-    try {
-      const baseUrl = process.env.FRONTEND_URL || process.env.BASE_URL || 'http://localhost:3000';
-      event.qrCode = await generateEventQRCode(event, baseUrl);
-      await event.save();
-    } catch (qrErr) {
-      console.error('[QR] Failed to generate QR code for event', event._id, qrErr.message);
-    }
-
-    return ok(res, 201, 'Event created successfully', { data: event });
-  } catch (err) { next(err); }
-};
-
-// ─── Update Event ─────────────────────────────────────────────────────────────
-<<<<<<< HEAD
-
-const updateEvent = async (req, res, next) => {
-  try {
-=======
-=======
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
-
-// ─── Create Event ─────────────────────────────────────────────────────────────
-
-const createEvent = async (req, res, next) => {
-  try {
-<<<<<<< HEAD
-=======
-    const {
-      title, description, location,
-      startDate, endDate, category,
-      capacity, type, price, images,
-      ticketTypes, maxTicketsPerUser,
-    } = req.body;
-
-    // Build images array: combine uploaded files + URL objects from body
-    const uploadedImages = (req.files || []).map((f) => ({
-      url: `${process.env.BASE_URL}/uploads/${f.filename}`,
-      filename: f.filename,
-      isUploaded: true,
-    }));
-
-    const urlImages = Array.isArray(images)
-      ? images.map((img) => ({
-          url: typeof img === 'string' ? img : img.url,
-          filename: '',
-          isUploaded: false,
-        }))
-      : [];
-
-    const event = await Event.create({
-      title, description, location,
-      startDate, endDate, category,
-      capacity, type,
-      price: type === 'free' ? 0 : price,
-      organizer: req.user._id,
-      images: [...uploadedImages, ...urlImages],
-      ticketTypes: type === 'paid' ? (ticketTypes || []) : [],
-      maxTicketsPerUser: maxTicketsPerUser || 20,
-    });
-
-
-    // Auto-generate QR code and persist it
     try {
       const baseUrl = process.env.FRONTEND_URL || process.env.BASE_URL || 'http://localhost:3000';
       event.qrCode = await generateEventQRCode(event, baseUrl);
@@ -316,8 +185,6 @@ const createEvent = async (req, res, next) => {
 
 const updateEvent = async (req, res, next) => {
   try {
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     const { id } = req.params;
 
     const event = await Event.findById(id);
@@ -325,7 +192,6 @@ const updateEvent = async (req, res, next) => {
       return sendError(res, 404, `Event with ID "${id}" not found.`);
     }
 
-    // Only ADMIN or the event's organizer can update
     const isAdmin = req.user.role === ROLES.ADMIN;
     const isOrganizer = event.organizer.toString() === req.user._id.toString();
 
@@ -335,7 +201,6 @@ const updateEvent = async (req, res, next) => {
       );
     }
 
-    // Validate new capacity doesn't go below current participant count
     if (req.body.capacity !== undefined) {
       if (req.body.capacity < event.participants.length) {
         return sendError(res, 400,
@@ -363,7 +228,6 @@ const updateEvent = async (req, res, next) => {
       { new: true, runValidators: true })
       .populate({ path: "organizer", select: "fullName email" });
 
-    // Notify confirmed participants if key fields changed (fire-and-forget)
     const notifiableFields = ['startDate', 'endDate', 'location', 'title'];
     if (Object.keys(updateData).some((k) => notifiableFields.includes(k))) {
       Reservation.find({ event: id, status: 'confirmed' })
@@ -407,21 +271,8 @@ const deleteEvent = async (req, res, next) => {
       );
     }
 
-    // Soft delete the event
     await event.softDelete();
 
-<<<<<<< HEAD
-    // Notify all confirmed participants and cancel their reservations
-    // (fire-and-forget)
-=======
-<<<<<<< HEAD
-    // Notify all confirmed participants and cancel their reservations
-    // (fire-and-forget)
-=======
-    // Notify all confirmed participants and cancel their reservations, then
-    // expire any waitlist entries (all fire-and-forget)
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     Reservation.find({ event: id, status: 'confirmed' })
       .populate('user', 'fullName email')
       .then(async (reservations) => {
@@ -432,16 +283,9 @@ const deleteEvent = async (req, res, next) => {
       })
       .catch(() => {});
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
     WaitlistEntry.updateMany({ event: id, status: { $in: ['waiting', 'notified'] } }, { $set: { status: 'expired' } })
       .catch(() => {});
 
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
-    // Remove the event reference from all participants
     await User.updateMany({ events: id }, { $pull: { events: id } });
 
     return sendSuccess(res, 200, "Event deleted successfully.", {
@@ -554,52 +398,24 @@ const unregisterUserFromEvent = async (req, res, next) => {
 const getEventParticipants = async (req, res, next) => {
   try {
     const { eventId } = req.params;
-<<<<<<< HEAD
     const { page = 1, limit = 200, search = "" } = req.query;
     const pageNum = Math.max(parseInt(page), 1);
     const limitNum = Math.min(parseInt(limit), 200);
     const skip = (pageNum - 1) * limitNum;
 
     const event = await Event.findById(eventId).select('title capacity organizer');
-=======
-    const { page = 1, limit = 20, search = "" } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const event = await Event.findById(eventId).populate({
-      path: "participants",
-      select: "fullName email phone profileImage role createdAt",
-      match: search
-        ? { $or: [
-            { fullName: { $regex: search, $options: "i" } },
-            { email:    { $regex: search, $options: "i" } },
-          ] }
-        : {},
-    });
-
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     if (!event) {
       return sendError(res, 404, `Event with ID "${eventId}" not found.`);
     }
 
     const isAdmin     = req.user.role === ROLES.ADMIN;
     const isOrganizer = event.organizer.toString() === req.user._id.toString();
-<<<<<<< HEAD
-=======
 
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     if (!isAdmin && !isOrganizer) {
       return sendError(res, 403,
         "Access denied. Only the event organizer or ADMIN can view participants."
       );
-    }
-
-<<<<<<< HEAD
-    const reservationFilter = { event: eventId, status: 'confirmed' };
-    if (search) {
-      reservationFilter.$or = [
-        { 'user.fullName': { $regex: search, $options: 'i' } },
-        { 'user.email':    { $regex: search, $options: 'i' } },
-      ];
     }
 
     const matchStage = { $match: { event: event._id, status: 'confirmed' } };
@@ -655,11 +471,6 @@ const getEventParticipants = async (req, res, next) => {
 
     const total = countResult.length > 0 ? countResult[0].total : 0;
     const totalPages = Math.ceil(total / limitNum);
-=======
-    const allParticipants = event.participants;
-    const total           = allParticipants.length;
-    const participants    = allParticipants.slice(skip, skip + parseInt(limit));
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 
     return sendSuccess(
       res, 200,
@@ -675,17 +486,11 @@ const getEventParticipants = async (req, res, next) => {
         participants,
         pagination: {
           total,
-<<<<<<< HEAD
           totalPages,
           currentPage: pageNum,
           limit: limitNum,
           hasNextPage: pageNum < totalPages,
           hasPrevPage: pageNum > 1,
-=======
-          totalPages: Math.ceil(total / parseInt(limit)),
-          currentPage: parseInt(page),
-          limit: parseInt(limit),
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
         },
       }
     );
@@ -694,18 +499,8 @@ const getEventParticipants = async (req, res, next) => {
   }
 };
 
-
-
 // ─── Get Event QR Code ────────────────────────────────────────────────────────
 
-/**
- * GET /api/events/:id/qrcode
- * Returns the stored QR code for the event.
- * If it was never generated (legacy documents), generates it on the fly,
- * persists it, and returns it.
- * Query param: ?format=png → responds with a raw PNG buffer (Content-Type: image/png)
- *              default     → responds with JSON { qrCode: "data:image/png;base64,..." }
- */
 const getEventQRCode = async (req, res, next) => {
   try {
     const event = await Event.findById(req.params.id);
@@ -715,7 +510,6 @@ const getEventQRCode = async (req, res, next) => {
 
     let qrCode = event.qrCode;
 
-    // Regenerate if missing (e.g. events created before this feature)
     if (!qrCode) {
       const baseUrl = process.env.FRONTEND_URL || process.env.BASE_URL || 'http://localhost:3000';
       qrCode = await generateEventQRCode(event, baseUrl);
@@ -723,7 +517,6 @@ const getEventQRCode = async (req, res, next) => {
       await event.save();
     }
 
-    // Return raw PNG if requested
     if (req.query.format === 'png') {
       const base64Data = qrCode.replace(/^data:image\/png;base64,/, '');
       const buffer = Buffer.from(base64Data, 'base64');
@@ -744,11 +537,6 @@ const getEventQRCode = async (req, res, next) => {
 
 // ─── Regenerate Event QR Code ─────────────────────────────────────────────────
 
-/**
- * PATCH /api/events/:id/qrcode
- * Force-regenerates the QR code for an event.
- * Only the organizer or an ADMIN can regenerate.
- */
 const regenerateEventQRCode = async (req, res, next) => {
   try {
     const event = await Event.findById(req.params.id);

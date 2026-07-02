@@ -37,9 +37,5 @@ export class NavbarComponent {
   }
 
   get isAdmin(): boolean { return this.auth.currentUser()?.role === 'ADMIN'; }
-<<<<<<< HEAD
-  get isParticipant(): boolean { return this.auth.currentUser()?.role === 'PARTICIPANT'; }
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   get isOrganizerOrAdmin(): boolean { const r = this.auth.currentUser()?.role; return r === 'ADMIN' || r === 'ORGANIZER'; }
 }

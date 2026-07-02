@@ -48,15 +48,7 @@ export class LoginComponent {
         this.loading = false;
         this.toast.success(`Bienvenue, ${res.data.user.fullName} !`);
         const redirect = this.route.snapshot.queryParamMap.get('redirect');
-<<<<<<< HEAD
         const target = redirect || (res.data.user.role === 'ADMIN' || res.data.user.role === 'ORGANIZER' ? '/backoffice' : '/events');
-=======
-<<<<<<< HEAD
-        const target = redirect || (res.data.user.role === 'ADMIN' || res.data.user.role === 'ORGANIZER' ? '/backoffice' : '/events');
-=======
-        const target = redirect || (res.data.user.role === 'ADMIN' ? '/admin/events' : '/events');
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
         this.router.navigateByUrl(target);
       },
       error: (err) => {

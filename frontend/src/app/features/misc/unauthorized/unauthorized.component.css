@@ -1,33 +1,6 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 :host { min-height: 100vh; background: var(--color-bg); display: flex; align-items: center; justify-content: center; padding: 24px; }
 .state-block { text-align: center; max-width: 400px; }
 .state-block .eyebrow { font-size: 4rem; font-weight: 900; color: var(--brand-200); font-family: var(--font-display); line-height: 1; }
 :host-context(.dark) .state-block .eyebrow { color: var(--brand-800); }
 .state-block h3 { font-size: 1.5rem; margin: 8px 0; color: var(--color-ink); }
 .state-block p { color: var(--color-muted); font-size: .95rem; margin: 0 0 24px; }
-
-<<<<<<< HEAD
-=======
-=======
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
-.state-screen {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-<<<<<<< HEAD
-  padding: var(--space-6);
-  background: var(--color-bg);
-=======
-<<<<<<< HEAD
-  padding: var(--space-6);
-  background: var(--color-bg);
-=======
-  padding: 24px;
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
-}

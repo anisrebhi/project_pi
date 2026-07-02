@@ -29,7 +29,6 @@
 }
 .bo-filters { display: flex; gap: var(--space-4); align-items: flex-end; flex-wrap: wrap; }
 
-<<<<<<< HEAD
 /* Event search */
 .event-search-wrap {
   flex: 1; min-width: 200px; max-width: 320px;
@@ -51,8 +50,6 @@
 }
 .search-clear-btn .material-icons { font-size: 18px; }
 
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 /* Active button state */
 .btn-active {
   background: var(--color-primary, #6366f1) !important;
@@ -351,10 +348,7 @@ tbody tr:hover { background: var(--color-bg-subtle, #f8fafc); }
 :host-context(.dark) .force-label   { background: var(--dark-surface-2, #0f172a); border-color: var(--dark-line, #334155); }
 :host-context(.dark) .row-has-cert  { background: rgba(16,185,129,.04); }
 :host-context(.dark) .row-selected  { background: rgba(99,102,241,.08); }
-<<<<<<< HEAD
 :host-context(.dark) .search-clear-btn:hover { background: rgba(255,255,255,.08); color: #e2e8f0; }
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 :host-context(.dark) .events-error-banner { background: rgba(239,68,68,.08); }
 :host-context(.dark) .events-error-body strong { color: #f87171; }
 :host-context(.dark) .events-error-body p { color: #fca5a5; }
@@ -369,10 +363,7 @@ tbody tr:hover { background: var(--color-bg-subtle, #f8fafc); }
   .cert-stats-row { grid-template-columns: repeat(2, 1fr); }
   .parts-stats-row { flex-direction: column; }
   .bo-filters { flex-direction: column; }
-<<<<<<< HEAD
   .event-search-wrap { max-width: 100%; }
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   .parts-action-bar { flex-direction: column; align-items: stretch; }
   .actions-cell { flex-direction: column; align-items: flex-start; }
 }

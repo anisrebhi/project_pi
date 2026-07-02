@@ -13,18 +13,11 @@ import {
   Component, OnInit, OnDestroy, signal, computed,
 } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-<<<<<<< HEAD
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule }          from '@angular/router';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { FormControl } from '@angular/forms';
-=======
-import { FormsModule }           from '@angular/forms';
-import { RouterModule }          from '@angular/router';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Subject, takeUntil }    from 'rxjs';
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 
 import { environment }                    from '../../../../environments/environment';
 import { AuthService }                    from '../../../core/services/auth.service';
@@ -37,11 +30,7 @@ interface Toast { msg: string; type: 'success' | 'error' | 'info' }
 @Component({
   selector: 'app-bo-certificates',
   standalone: true,
-<<<<<<< HEAD
   imports: [CommonModule, FormsModule, ReactiveFormsModule, DatePipe, RouterModule],
-=======
-  imports: [CommonModule, FormsModule, DatePipe, RouterModule],
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   templateUrl: './bo-certificates.component.html',
   styleUrls:  ['./bo-certificates.component.css'],
 })
@@ -84,7 +73,6 @@ export class BoCertificatesComponent implements OnInit, OnDestroy {
   // ── Filters ─────────────────────────────────────────────────────────────────
   selectedEventId = '';
 
-<<<<<<< HEAD
   // ── Event search ────────────────────────────────────────────────────────────
   eventSearchCtrl = new FormControl('');
   eventSearch     = signal<string>('');
@@ -101,8 +89,6 @@ export class BoCertificatesComponent implements OnInit, OnDestroy {
     });
   });
 
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   // ── Computed ────────────────────────────────────────────────────────────────
   readonly filteredParticipants = computed(() => {
     const q = this.searchParts.toLowerCase().trim();
@@ -142,7 +128,6 @@ export class BoCertificatesComponent implements OnInit, OnDestroy {
     private authService: AuthService,
   ) {}
 
-<<<<<<< HEAD
   ngOnInit(): void {
     this.loadEvents();
 
@@ -169,9 +154,6 @@ export class BoCertificatesComponent implements OnInit, OnDestroy {
       }
     });
   }
-=======
-  ngOnInit(): void { this.loadEvents(); }
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -475,14 +457,11 @@ export class BoCertificatesComponent implements OnInit, OnDestroy {
   isDeleting(cert: Certificate): boolean { return this.deleting() === cert._id; }
   trackById(_: number, item: any): string { return item._id || item.userId; }
 
-<<<<<<< HEAD
   clearSearchEvent(): void {
     this.eventSearchCtrl.setValue('', { emitEvent: true });
     this.eventSearch.set('');
   }
 
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   private buildNetworkError(err: HttpErrorResponse): string {
     if (err.status === 0) return '⚠️ Serveur inaccessible.\nVérifiez que le backend est démarré : cd backend && npm run dev';
     if (err.status === 400) return `Paramètres invalides (400) : ${err.error?.message || ''}`;

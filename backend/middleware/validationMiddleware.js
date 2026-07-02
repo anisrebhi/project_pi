@@ -147,8 +147,6 @@ const validateUpdateStatut = [
 
 // ─── Reservation ─────────────────────────────────────────────────────────────
 const validateCreateReservation = [
-  // userId is optional: regular users always book for themselves (req.user._id).
-  // Only an ADMIN may supply a different userId to book on someone else's behalf.
   body("userId").optional().isMongoId().withMessage("userId must be a valid MongoDB ObjectId"),
   body("eventId").notEmpty().withMessage("eventId is required").isMongoId().withMessage("eventId must be a valid MongoDB ObjectId"),
   body("numberOfTickets").notEmpty().withMessage("numberOfTickets is required")
@@ -163,10 +161,6 @@ const validateCancelReservation = [
   runValidation,
 ];
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
 // ─── Waitlist ─────────────────────────────────────────────────────────────────
 const validateJoinWaitlist = [
   body("eventId").notEmpty().withMessage("eventId is required").isMongoId().withMessage("eventId must be a valid MongoDB ObjectId"),
@@ -175,8 +169,6 @@ const validateJoinWaitlist = [
   runValidation,
 ];
 
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 // ─── Promo Code ───────────────────────────────────────────────────────────────
 const validateCreatePromoCode = [
   body("code").trim().notEmpty().withMessage("Code is required")
@@ -236,15 +228,9 @@ module.exports = {
   validateUpdateStatut,
   validateCreateReservation,
   validateCancelReservation,
+  validateJoinWaitlist,
   validateCreatePromoCode,
   validateUpdatePromoCode,
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-  validateJoinWaitlist,
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   validateMongoId,
   validatePagination,
   validateQueryParams,

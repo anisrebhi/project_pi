@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 <div class="gallery-section" *ngIf="showSection">
-=======
-<div class="gallery-section">
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   <div class="gallery-header">
     <h2>Galerie Photos</h2>
     <span class="photo-count" *ngIf="photos().length > 0">{{ photos().length }} photo(s)</span>
@@ -36,16 +32,11 @@
 
   <div *ngIf="!loading() && photos().length === 0" class="empty-gallery">
     <span class="empty-gallery-icon material-icons">photo_library</span>
-<<<<<<< HEAD
     <p class="empty-gallery-title">Aucune photo pour le moment</p>
     <p class="empty-gallery-sub" *ngIf="canUpload && isEventPast">Ajoutez les souvenirs de l'événement pour les participants&nbsp;!</p>
     <button *ngIf="canUpload && isEventPast" class="btn btn-primary" (click)="scrollToUpload()">
       <span class="material-icons">add_a_photo</span> Ajouter des photos
     </button>
-=======
-    <p>Aucune photo pour le moment.</p>
-    <small *ngIf="canUpload && isEventPast">Ajoutez les souvenirs de l'événement !</small>
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   </div>
 
   <div class="photo-grid" *ngIf="!loading() && photos().length > 0">

@@ -63,7 +63,6 @@
   <div class="bo-filters-card">
     <div class="bo-filters gap-3 flex-wrap">
 
-<<<<<<< HEAD
       <!-- Recherche événement -->
       <div class="event-search-wrap">
         <label>Rechercher</label>
@@ -89,8 +88,6 @@
         </span>
       </div>
 
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
       <!-- Sélecteur événement -->
       <div class="field mb-0" style="flex:1;min-width:240px;max-width:460px">
         <label>Événement</label>
@@ -98,20 +95,10 @@
                 (ngModelChange)="onEventChange()"
                 [disabled]="loadingEvts()">
           <option value="">{{ loadingEvts() ? 'Chargement…' : '— Choisir un événement —' }}</option>
-<<<<<<< HEAD
           <option *ngFor="let e of filteredEvents()" [value]="e._id">
             {{ e.title }} ({{ e.startDate | date:'dd/MM/yyyy' }})
           </option>
         </select>
-=======
-          <option *ngFor="let e of events()" [value]="e._id">
-            {{ e.title }} ({{ e.startDate | date:'dd/MM/yyyy' }})
-          </option>
-        </select>
-        <span class="field-hint" *ngIf="events().length > 0">
-          {{ events().length }} événement(s) disponible(s)
-        </span>
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
       </div>
 
       <!-- Actions principales -->
@@ -154,7 +141,6 @@
       </div>
     </div>
 
-<<<<<<< HEAD
     <!-- Aucun résultat recherche -->
     <div class="alert alert-warning animate-fade" style="margin-top:12px;margin-bottom:0"
          *ngIf="eventSearch() && filteredEvents().length === 0 && !loadingEvts()">
@@ -162,8 +148,6 @@
       Aucun événement trouvé.
     </div>
 
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     <!-- Info événement -->
     <div class="event-info-bar" *ngIf="selectedEvent()">
       <span class="material-icons" style="font-size:14px">event</span>

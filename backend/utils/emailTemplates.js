@@ -38,10 +38,6 @@ const buildReservationConfirmationEmail = ({ reservation, user, event, qrCodeDat
   return { subject, html, text, attachments };
 };
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
 // ─── Waitlist Confirmation ────────────────────────────────────────────────────
 const buildWaitlistConfirmationEmail = ({ user, event, entry, position }) => {
   const subject = `Inscription sur liste d'attente — ${event.title}`;
@@ -66,8 +62,6 @@ const buildWaitlistPromotionEmail = ({ user, event, reservation }) => {
   return { subject, html, text: `Place confirmée pour ${event.title}. Réf: ${reservation._id}`, attachments: [] };
 };
 
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 // ─── Event Reminder ───────────────────────────────────────────────────────────
 const buildEventReminderEmail = ({ user, event, reservation }) => {
   const subject = `⏰ Rappel — ${event.title} commence demain`;
@@ -155,14 +149,8 @@ const buildNewPhotosEmail = ({ user, event, count }) => {
 
 module.exports = {
   buildReservationConfirmationEmail,
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
   buildWaitlistConfirmationEmail,
   buildWaitlistPromotionEmail,
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   buildEventReminderEmail,
   buildEventModifiedEmail,
   buildEventCancelledEmail,

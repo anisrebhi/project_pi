@@ -35,7 +35,6 @@ export interface EventOrganizer {
   email: string;
 }
 
-<<<<<<< HEAD
 export interface EventAttachment {
   name: string;
   url: string;
@@ -56,21 +55,16 @@ export interface ConfirmedReservation {
   reservationDate: string;
 }
 
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 export interface EventModel {
   _id: string;
   title: string;
   description?: string;
   location?: EventLocation;
-<<<<<<< HEAD
   participationMode?: 'in-person' | 'online' | 'hybrid';
   videoConferenceLink?: string;
   tags?: string[];
   conditions?: string;
   attachments?: EventAttachment[];
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   startDate: string;
   endDate: string;
   category?: EventCategory;
@@ -78,10 +72,7 @@ export interface EventModel {
   organizer: EventOrganizer | string;
   participants: string[];
   isActive: boolean;
-<<<<<<< HEAD
   status?: 'draft' | 'published' | 'active' | 'cancelled' | string;
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   type: EventType;
   price: number;
   ticketTypes?: TicketType[];
@@ -94,7 +85,6 @@ export interface EventModel {
   isPast?: boolean;
   createdAt?: string;
   updatedAt?: string;
-<<<<<<< HEAD
   _bookedTickets?: number;
   _hasReservation?: boolean;
   _reservationStats?: EventStats;
@@ -104,8 +94,6 @@ export interface EventModel {
   _confirmedParticipants?: ConfirmedReservation[];
   _waitlistCount?: number;
   _fillRate?: number;
-=======
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 }
 
 /** Payload sent to the API when creating/updating an event */
@@ -129,18 +117,10 @@ export function getEventImageUrl(event: EventModel): string | null {
   return event.images?.[0]?.url ?? null;
 }
 
-<<<<<<< HEAD
 /** Compute available spots defensively — prefers _bookedTickets (real aggregate) over virtuals that count unique users. */
 export function computeAvailableSpots(event: EventModel): number {
   const booked = event._bookedTickets ?? event.participantCount ?? event.participants?.length ?? 0;
   return Math.max(0, event.capacity - booked);
-=======
-/** Compute available spots defensively (backend lean() loses virtuals) */
-export function computeAvailableSpots(event: EventModel): number {
-  if (event.availableSpots !== undefined) return event.availableSpots;
-  const count = event.participantCount ?? event.participants?.length ?? 0;
-  return Math.max(0, event.capacity - count);
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 }
 
 export function computeIsFull(event: EventModel): boolean {

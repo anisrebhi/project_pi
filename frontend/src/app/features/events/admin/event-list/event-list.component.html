@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
 <div class="bo-page">
   <div class="bo-page-header">
     <div>
@@ -34,11 +30,7 @@
   <div class="spinner-center" *ngIf="loading"><span class="spinner spinner-lg"></span></div>
 
   <ng-container *ngIf="!loading && !errorMessage">
-<<<<<<< HEAD
     <div class="bo-grid" *ngIf="events.length > 0">
-=======
-    <div class="bo-grid" *ngIf="events.length > 0; else empty">
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
       <div class="bo-event-card" *ngFor="let event of events">
         <div class="bo-card-img">
           <img *ngIf="getEventImageUrl(event)" [src]="getEventImageUrl(event)" [alt]="event.title">
@@ -60,193 +52,24 @@
             <span>{{ event.startDate | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
           <div class="bo-capacity">
-<<<<<<< HEAD
             <div class="bo-cap-header"><span>{{ event.participantCount ?? event.participants.length }} / {{ event.capacity }}</span><span>{{ fillPct(event) }}%</span></div>
-=======
-            <div class="bo-cap-header"><span>{{ event.participantCount ?? (event.participants?.length ?? 0) }} / {{ event.capacity }}</span><span>{{ fillPct(event) }}%</span></div>
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
             <div class="bo-cap-track"><div class="bo-cap-fill" [class.warn]="fillPct(event) >= 70 && fillPct(event) < 90" [class.danger]="fillPct(event) >= 90" [style.width.%]="fillPct(event)"></div></div>
           </div>
         </div>
         <div class="bo-card-actions">
-<<<<<<< HEAD
           <a class="btn btn-primary btn-sm" [routerLink]="['/backoffice/events', event._id]"><span class="material-icons">visibility</span> Afficher</a>
           <a class="btn btn-secondary btn-sm" [routerLink]="['/backoffice/events', event._id, 'edit']"><span class="material-icons">edit</span> Modifier</a>
           <button class="btn btn-danger btn-sm" (click)="deleteEvent(event)"><span class="material-icons">delete</span> Supprimer</button>
-=======
-          <a class="btn btn-secondary btn-sm" [routerLink]="['/backoffice/events', event._id, 'edit']"><span class="material-icons">edit</span> Modifier</a>
-          <button class="btn btn-danger btn-sm" (click)="deleteEvent(event)"><span class="material-icons">delete</span> Supprimer</button>
-=======
-<div class="page">
-
-  <!-- Header -->
-  <div class="page-header">
-    <div>
-      <span class="eyebrow">Administration</span>
-      <h1>Gestion des événements</h1>
-      <p class="subtitle">Créez, modifiez et gérez tous les événements de la plateforme.</p>
-    </div>
-    <a routerLink="/admin/events/new" class="btn btn-primary">
-      <span class="material-icons" style="font-size:18px">add</span> Nouvel événement
-    </a>
-  </div>
-
-  <!-- Filters -->
-  <form [formGroup]="filters" class="card filters-bar">
-    <div class="field" style="margin-bottom:0; flex:2; min-width:200px">
-      <label>Rechercher</label>
-      <div class="search-input-wrap">
-        <span class="material-icons search-icon">search</span>
-        <input type="text" formControlName="search" placeholder="Titre ou description...">
-      </div>
-    </div>
-    <div class="field" style="margin-bottom:0; flex:1; min-width:140px">
-      <label>Catégorie</label>
-      <select formControlName="category">
-        <option *ngFor="let c of categories" [value]="c.value">{{ c.emoji }} {{ c.label }}</option>
-      </select>
-    </div>
-    <div class="field" style="margin-bottom:0; flex:1; min-width:120px">
-      <label>Type</label>
-      <select formControlName="type">
-        <option value="">Tous</option>
-        <option value="free">Gratuit</option>
-        <option value="paid">Payant</option>
-      </select>
-    </div>
-  </form>
-
-  <!-- Error -->
-  <div class="alert alert-error mt-16" *ngIf="errorMessage">
-    <span class="material-icons">error_outline</span> {{ errorMessage }}
-  </div>
-
-  <!-- Loading -->
-  <div class="spinner-center" *ngIf="loading">
-    <span class="spinner spinner-lg"></span>
-  </div>
-
-  <!-- Grid -->
-  <ng-container *ngIf="!loading && !errorMessage">
-    <div class="grid grid-3 mt-24 animate-in" *ngIf="events.length > 0; else empty">
-      <div class="event-admin-card card card-hoverable" *ngFor="let event of events">
-
-        <!-- Image / placeholder -->
-        <div class="event-card-img-wrap">
-          <img *ngIf="getEventImageUrl(event)" [src]="getEventImageUrl(event)" [alt]="event.title" class="event-card-img">
-          <div *ngIf="!getEventImageUrl(event)" class="event-card-img-placeholder">
-            {{ getCategoryEmoji(event.category) }}
-          </div>
-          <!-- Status badge overlay -->
-          <div class="event-status-overlay">
-            <span class="badge badge-past" *ngIf="isPast(event)">Passé</span>
-            <span class="badge badge-confirmed" *ngIf="!isPast(event) && event.isActive">Actif</span>
-            <span class="badge badge-cancelled" *ngIf="!event.isActive">Désactivé</span>
-          </div>
-        </div>
-
-        <!-- Body -->
-        <div class="event-admin-body">
-          <div class="event-card-chips">
-            <span class="category-chip">{{ getCategoryEmoji(event.category) }} {{ getCategoryLabel(event.category) }}</span>
-            <span class="badge" [class]="event.type === 'paid' ? 'badge-paid' : 'badge-free'">
-              {{ event.type === 'paid' ? (event.price + ' DT') : 'Gratuit' }}
-            </span>
-          </div>
-
-          <h3 class="event-admin-title">{{ event.title }}</h3>
-
-          <div class="event-admin-meta">
-            <div class="meta-row">
-              <span class="material-icons meta-icon">calendar_today</span>
-              <span class="meta-text">{{ event.startDate | date:'dd/MM/yyyy HH:mm' }}</span>
-            </div>
-            <div class="meta-row" *ngIf="event.location?.address">
-              <span class="material-icons meta-icon">place</span>
-              <span class="meta-text">{{ event.location?.address }}</span>
-            </div>
-          </div>
-
-          <!-- Capacity bar -->
-          <div class="capacity-bar-wrap mt-12">
-            <div class="capacity-bar-label">
-              <span>{{ event.participantCount ?? event.participants.length }} / {{ event.capacity }} participants</span>
-              <span>{{ fillPct(event) }}%</span>
-            </div>
-            <div class="capacity-bar-track">
-              <div class="capacity-bar-fill"
-                   [class.warn]="fillPct(event) >= 70 && fillPct(event) < 90"
-                   [class.danger]="fillPct(event) >= 90"
-                   [style.width.%]="fillPct(event)"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Actions footer -->
-        <div class="event-admin-footer">
-          <a class="btn btn-secondary btn-sm" [routerLink]="['/admin/events', event._id, 'edit']">
-            <span class="material-icons" style="font-size:15px">edit</span> Modifier
-          </a>
-          <button class="btn btn-danger btn-sm" (click)="deleteEvent(event)">
-            <span class="material-icons" style="font-size:15px">delete</span> Supprimer
-          </button>
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
         </div>
       </div>
     </div>
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-    <ng-template #empty>
-      <div class="bo-empty">
-        <span class="material-icons bo-empty-icon">event_busy</span>
-        <h3>Aucun événement</h3>
-        <p>Ajustez vos filtres ou créez un nouvel événement.</p>
-        <a routerLink="/backoffice/events/new" class="btn btn-primary">Créer un événement</a>
-      </div>
-    </ng-template>
-
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     <div class="bo-pagination" *ngIf="pagination && pagination.totalPages > 1">
       <span class="bo-page-info">{{ pagination.total }} événement(s) — Page {{ pagination.currentPage }} / {{ pagination.totalPages }}</span>
       <div class="bo-page-btns">
         <button class="page-btn" [disabled]="!pagination.hasPrevPage" (click)="goToPage(page - 1)"><span class="material-icons">chevron_left</span></button>
         <button class="page-btn" *ngFor="let p of pages" [class.active]="p === pagination.currentPage" (click)="goToPage(p)">{{ p }}</button>
         <button class="page-btn" [disabled]="!pagination.hasNextPage" (click)="goToPage(page + 1)"><span class="material-icons">chevron_right</span></button>
-<<<<<<< HEAD
-=======
-=======
-    <!-- Empty state -->
-    <ng-template #empty>
-      <div class="state-block card mt-24">
-        <div class="state-icon">📅</div>
-        <h3>Aucun événement trouvé</h3>
-        <p>Ajustez vos filtres ou créez un nouvel événement.</p>
-        <a routerLink="/admin/events/new" class="btn btn-primary mt-16">
-          <span class="material-icons" style="font-size:16px">add</span> Créer un événement
-        </a>
-      </div>
-    </ng-template>
-
-    <!-- Pagination -->
-    <div class="flex-between mt-24" *ngIf="pagination && pagination.totalPages > 1">
-      <span class="text-sm muted">
-        {{ pagination.total }} événement(s) — Page {{ pagination.currentPage }} / {{ pagination.totalPages }}
-      </span>
-      <div class="pagination">
-        <button class="page-btn" [disabled]="!pagination.hasPrevPage" (click)="goToPage(page - 1)">
-          <span class="material-icons" style="font-size:16px">chevron_left</span>
-        </button>
-        <button class="page-btn" *ngFor="let p of pages" [class.active]="p === pagination.currentPage" (click)="goToPage(p)">
-          {{ p }}
-        </button>
-        <button class="page-btn" [disabled]="!pagination.hasNextPage" (click)="goToPage(page + 1)">
-          <span class="material-icons" style="font-size:16px">chevron_right</span>
-        </button>
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
       </div>
     </div>
   </ng-container>

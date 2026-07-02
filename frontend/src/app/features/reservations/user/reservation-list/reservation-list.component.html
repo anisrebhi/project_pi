@@ -5,10 +5,6 @@
       <h1>Mes réservations</h1>
       <p class="subtitle">Retrouvez l'historique de vos réservations et téléchargez vos billets.</p>
     </div>
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     <a routerLink="/events" class="btn btn-primary">
       <span class="material-icons">explore</span>
       Découvrir des événements
@@ -16,15 +12,6 @@
   </div>
 
   <form [formGroup]="filters" class="filters-bar">
-<<<<<<< HEAD
-=======
-=======
-    <a routerLink="/events" class="btn btn-primary">Découvrir des événements</a>
-  </div>
-
-  <form [formGroup]="filters" class="card card-pad filters-bar">
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     <div class="field" style="margin-bottom: 0;">
       <label for="status">Statut</label>
       <select id="status" formControlName="status">
@@ -36,10 +23,6 @@
     </div>
   </form>
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
   <div class="alert alert-error mt-16" *ngIf="errorMessage">
     <span class="material-icons">error_outline</span>
     <span>{{ errorMessage }}</span>
@@ -71,62 +54,19 @@
         <div class="reservation-card-action">
           <span>Détails</span>
           <span class="material-icons">arrow_forward</span>
-<<<<<<< HEAD
-=======
-=======
-  <div class="alert alert-error mt-16" *ngIf="errorMessage">{{ errorMessage }}</div>
-
-  <div class="mt-16" *ngIf="loading" style="display:flex; justify-content:center; padding: 48px 0;">
-    <span class="spinner"></span>
-  </div>
-
-  <ng-container *ngIf="!loading && !errorMessage">
-    <div class="grid grid-2 mt-16 animate-in" *ngIf="reservations.length > 0; else empty">
-      <a class="reservation-card card card-hoverable" *ngFor="let reservation of reservations" [routerLink]="['/my-reservations', reservation._id]">
-        <div class="card-pad">
-          <div class="flex-between">
-            <span class="category-chip">{{ getCategoryEmoji(asEvent(reservation).category) }} {{ getCategoryLabel(asEvent(reservation).category) }}</span>
-            <app-status-badge [status]="reservation.status"></app-status-badge>
-          </div>
-          <h3 class="mt-8">{{ asEvent(reservation).title }}</h3>
-          <p class="text-sm muted mt-8">
-            <span class="material-icons" style="font-size:13px;vertical-align:middle">calendar_today</span>
-            {{ asEvent(reservation).startDate | date: 'EEEE dd MMMM yyyy, HH:mm' }}
-          </p>
-          <div class="flex-between mt-16">
-            <span class="text-sm cell-strong">{{ reservation.numberOfTickets }} billet(s) — {{ reservation.totalPrice }} DT</span>
-            <span class="btn-ghost btn-sm" style="font-weight:700;">
-              Détails <span class="material-icons" style="font-size:15px;vertical-align:middle">arrow_forward</span>
-            </span>
-          </div>
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
         </div>
       </a>
     </div>
 
     <ng-template #empty>
-<<<<<<< HEAD
       <div class="state-block mt-16">
         <span class="state-icon">🎟️</span>
-=======
-<<<<<<< HEAD
-      <div class="state-block mt-16">
-        <span class="state-icon">🎟️</span>
-=======
-      <div class="state-block card mt-16">
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
         <h3>Aucune réservation pour le moment</h3>
         <p>Parcourez le catalogue d'événements pour effectuer votre première réservation.</p>
         <a routerLink="/events" class="btn btn-primary mt-16">Voir les événements</a>
       </div>
     </ng-template>
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
     <div class="flex-between mt-8" *ngIf="pagination && pagination.totalPages > 1">
       <span class="text-sm muted">
         Page {{ pagination.currentPage }} / {{ pagination.totalPages }} — {{ pagination.total }} réservation(s)
@@ -138,21 +78,6 @@
         <span class="page-info">{{ pagination.currentPage }}</span>
         <button class="page-btn" [disabled]="!pagination.hasNextPage" (click)="goToPage(page + 1)">
           <span class="material-icons">chevron_right</span>
-<<<<<<< HEAD
-=======
-=======
-    <div class="flex-between mt-24" *ngIf="pagination && pagination.totalPages > 1">
-      <span class="text-sm muted">
-        Page {{ pagination.currentPage }} / {{ pagination.totalPages }} — {{ pagination.total }} réservation(s)
-      </span>
-      <div class="flex gap-8">
-        <button class="btn btn-secondary btn-sm" [disabled]="!pagination.hasPrevPage" (click)="goToPage(page - 1)">
-          ← Précédent
-        </button>
-        <button class="btn btn-secondary btn-sm" [disabled]="!pagination.hasNextPage" (click)="goToPage(page + 1)">
-          Suivant →
->>>>>>> aafeed99be36f3bc11bed1815dd9d32a585a85f3
->>>>>>> e2bbbb960cae30eff4e719238c6967919f724851
         </button>
       </div>
     </div>
